@@ -9,6 +9,12 @@ namespace LabeledByAI;
 
 public class LabelFunction(IChatClient chatClient, ILogger<LabelFunction> logger)
 {
+    public record NewIssue(
+        string[] Labels,
+        string Body,
+        string? Title = null,
+        string? Url = null);
+
     private static readonly JsonSerializerOptions SerializerOptions =
         new()
         {
@@ -19,7 +25,7 @@ public class LabelFunction(IChatClient chatClient, ILogger<LabelFunction> logger
         };
 
     [Function("label")]
-    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest request)
+    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest request)
     {
         logger.LogInformation("Starting to process a new issue...");
 
