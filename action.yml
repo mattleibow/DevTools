@@ -58,6 +58,8 @@ runs:
         Write-Output "Repository URL: $repoUrl"
         Write-Output "Issue Url: $($issue.html_url)"
         Write-Output "Issue Title: $($issue.title)"
+        Write-Output "Issue Body:"
+        Write-Output "$($issue.body)"
         Write-Output "::endgroup::"
 
         Write-Output "::group::Loading labels..."
