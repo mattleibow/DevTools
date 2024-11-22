@@ -19,6 +19,8 @@ jobs:
           $issue = Get-Content -Raw ".github/workflows/test-issue.json"
           $issue = $env:ISSUE_JSON | Join-String -Separator " "
           "GITHUB_ISSUE=$issue" >> "$GITHUB_OUTPUT"
+          echo $issue
+          echo $env:GITHUB_OUTPUT
       - uses: mattleibow/labeled-by-ai@dev/workflow-testing
         with:
           label-pattern: '^area/.*'
