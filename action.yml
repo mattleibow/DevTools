@@ -34,7 +34,7 @@ runs:
       run: |
         "Finding the best label using AI.."
 
-        Write-Output "::group::Processing inputs..."
+        Write-Output "::group::Validating inputs..."
         # Parse the issue json from the event or fall back
         # to the deprecated method of reading the issue json
         # from the environment variable
@@ -128,5 +128,9 @@ runs:
         SELECTED_REASON: ${{ steps.get-label.outputs.SELECTED_REASON }}
       run: |
         "Applying the selected label to the issue.."
+
+        Write-Output "::group::Validating inputs..."
         Write-Output "Found a great label to apply to the issue: $($env:SELECTED_LABEL)"
         Write-Output "The reasoning is: $($env:SELECTED_REASON)"
+        Write-Output "::endgroup::"
+        
