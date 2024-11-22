@@ -42,42 +42,43 @@ runs:
         # Write-Output "::debug::GITHUB_ISSUE: $env:GITHUB_ISSUE"
         # Write-Output "::debug::GITHUB_ISSUE_DEPRECATED: $env:GITHUB_ISSUE_DEPRECATED"
         # Write-Output "::debug::issue: $issue"
-        # Write-Output "::debug::Repository URL: $repoUrl"
-        # Write-Output "::debug::Issue Url: $($issue.html_url)"
-        # Write-Output "::debug::Issue Title: $($issue.title)"
 
-        # $labelRegex = "$env:LABEL_PATTERN"
-        # $labelSelector = "[.[] | select(.name | test(`"$labelRegex`"))]"
-        # $labelsResult = gh label list --repo "$repoUrl" --json name --jq "$labelSelector"
-        # $labels = $labelsResult | ConvertFrom-Json
-        # Write-Output "::debug::$labels"
-        # $labelsNames = $labels | Select-Object -ExpandProperty name
+        Write-Output "::debug::Repository URL: $repoUrl"
+        Write-Output "::debug::Issue Url: $($issue.html_url)"
+        Write-Output "::debug::Issue Title: $($issue.title)"
+
+        $labelRegex = "$env:LABEL_PATTERN"
+        $labelSelector = "[.[] | select(.name | test(`"$labelRegex`"))]"
+        $labelsResult = gh label list --repo "$repoUrl" --json name --jq "$labelSelector"
+        $labels = $labelsResult | ConvertFrom-Json
+        Write-Output "::debug::$labels"
+        $labelsNames = $labels | Select-Object -ExpandProperty name
 
         # Write-Output "::debug::Filtered Labels:"
         # Write-Output "::debug::$labelsNames"
 
-        # $hostAddress = "https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io"
-        # $uri = "$hostAddress/api/label"
-        # $bodyObj = @{
-        #     title = $issue.title
-        #     body = $issue.body
-        #     url = $issue.html_url
-        #     labels = $labelsNames
-        # }
-        # $body = $bodyObj | ConvertTo-Json
+        $hostAddress = "https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io"
+        $uri = "$hostAddress/api/label"
+        $bodyObj = @{
+            title = $issue.title
+            body = $issue.body
+            url = $issue.html_url
+            labels = $labelsNames
+        }
+        $body = $bodyObj | ConvertTo-Json
 
         # Write-Output "::debug::Request Body:"
         # Write-Output "::debug::$body"
 
-        # $response = Invoke-RestMethod `
-        #   -Method Post `
-        #   -Uri $uri `
-        #   -Body $body `
-        #   -ContentType 'application/json'
+        $response = Invoke-RestMethod `
+          -Method Post `
+          -Uri $uri `
+          -Body $body `
+          -ContentType 'application/json'
 
         # Write-Output "::debug::Response:"
         # Write-Output "::debug::$response"
 
-        # # TODO: Apply the labels to the issue
+        # TODO: Apply the labels to the issue
 
         echo "DONE!"
