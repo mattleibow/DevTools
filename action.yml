@@ -7,6 +7,9 @@ inputs:
     description: 'The list of labels available.'
   label-pattern:
     description: 'The regex pattern to use to match the labels.'
+  apply-label:
+    default: 'true'
+    description: 'Whether or not to apply the label automatically.'
   issue-json:
     description: 'The json object of the issue to be labeled.'
     deprecationMessage: 'This is deprecated and will be removed.'
@@ -29,7 +32,7 @@ runs:
         LABEL_PATTERN: ${{ inputs.label-pattern }}          # the label pattern to match
         GITHUB_ISSUE_DEPRECATED: ${{ inputs.issue-json }}   # testing purposes only
       run: |
-        "Find the best label using AI"
+        "Finding the best label using AI.."
 
         Write-Output "::group::Processing inputs..."
         # Parse the issue json from the event or fall back
@@ -118,10 +121,12 @@ runs:
     - name: Apply the label to the issue
       shell: pwsh
       id: apply-label
+      if: ${{ inputs.apply-label == 'true' and steps.get-label.outputs.SELECTED_LABEL != null }}
       env:
         GH_TOKEN: ${{ github.token }}
         SELECTED_LABEL: ${{ steps.get-label.outputs.SELECTED_LABEL }}
         SELECTED_REASON: ${{ steps.get-label.outputs.SELECTED_REASON }}
       run: |
+        "Applying the label to the issue.."
         Write-Output "Found a great label to apply to the issue: $($env:SELECTED_LABEL)"
         Write-Output "The reasoning is: $($env:SELECTED_REASON)"
