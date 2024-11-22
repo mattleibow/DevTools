@@ -4,9 +4,12 @@ description: 'Use AI to find the best label to apply to a new issue'
 
 inputs:
   labels:
-    description: 'The list of labels available'
+    description: 'The list of labels available.'
   label-pattern:
-    description: 'The regex pattern to use to match the labels'
+    description: 'The regex pattern to use to match the labels.'
+  issue-json:
+    description: 'The json object of the issue to be labeled.'
+    deprecationMessage: 'This is deprecated and will be removed.'
 
 # outputs:
 #   label:
@@ -17,28 +20,35 @@ runs:
   using: "composite"
   steps:
 
-    - name: Read the test issue json
+    - name: Read the test issue json if it is provided
       shell: pwsh
       id: loader
-      # env:
-      #   GITHUB_ISSUE: ${{ toJson(github.event.issue) }}
+      if: ${{ inputs.issue-json != null }}
+      env:
+        ISSUE_JSON: ${{ inputs.issue-json }}
       run: |
-        $issue = Get-Content -Raw "${{ github.action_path }}/.github/workflows/test-issue.json"
-        $issue = $issue | Join-String -Separator " "
-        "GITHUB_ISSUE=$issue" >> $env:GITHUB_OUTPUT
+        $issue = $env:ISSUE_JSON | Join-String -Separator " "
+        "GITHUB_ISSUE_DEPRECATED=$issue" >> $env:GITHUB_OUTPUT
     
     - name: Do something when an issue is opened
       id: get-label
       shell: pwsh
       env:
         GITHUB_ISSUE: ${{ steps.loader.outputs.GITHUB_ISSUE }}
+        GITHUB_ISSUE_DEPRECATED: ${{ steps.loader.outputs.GITHUB_ISSUE_DEPRECATED }}
         GH_TOKEN: ${{ github.token }}
         LABEL_PATTERN: ${{ inputs.label-pattern }}
       run: |
-        $repoUrl = "${{ github.repositoryUrl }}"
         Write-Host "$env:GITHUB_ISSUE"
-        $issue = "$env:GITHUB_ISSUE" | ConvertFrom-Json
+        Write-Host "$env:GITHUB_ISSUE_DEPRECATED"
+        if (-not $env:GITHUB_ISSUE) {
+          $issue = "$env:GITHUB_ISSUE_DEPRECATED" | ConvertFrom-Json
+        } else {
+          $issue = "$env:GITHUB_ISSUE" | ConvertFrom-Json
+        }
         
+        $repoUrl = "${{ github.repositoryUrl }}"
+
         Write-Host "Repository URL: $repoUrl"
         Write-Host "Issue Url: $($issue.html_url)"
         Write-Host "Issue Title: $($issue.title)"
