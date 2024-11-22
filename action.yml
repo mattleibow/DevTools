@@ -23,10 +23,7 @@ runs:
       # env:
       #   GITHUB_ISSUE: ${{ toJson(github.event.issue) }}
       run: |
-        $issue = Get-Content "${{ github.action_path }}/.github/workflows/test-issue.json"
-        Write-Host $issue
-        $issueObject = @{ issue = $issue } | ConvertTo-Json
-        Write-Host $issueObject
+        $issue = Get-Content -Raw "${{ github.action_path }}/.github/workflows/test-issue.json" | ConvertTo-Json
         "GITHUB_ISSUE=$issue" >> "$GITHUB_OUTPUT"
     
     - name: Do something when an issue is opened
