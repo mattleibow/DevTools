@@ -1,6 +1,7 @@
 ﻿# For more info on HTTP files go to https://aka.ms/vs/httpfile
 
 @LabeledByAI_HostAddress = http://localhost:7200
+@LabeledByAI_HostAddress = https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io/
 
 POST {{LabeledByAI_HostAddress}}/api/label
 Content-Type: application/json
@@ -24,6 +25,32 @@ Content-Type: application/json
     "body": "        # ## Description\r\n\r\nAfter upgrading my previously working .NET 8 app to .NET 9 using Blazor WASM, it fails to run in both Debug/Release builds.\r\n\r\n# ## Code\r\n\r\n```html\r\n    <div class=\"canvas-wrapper\">\r\n        <SkiaSharp.Views.Blazor.SKCanvasView OnPaintSurface=\"OnPaintSurface\" class=\"skia-canvas\" EnableRenderLoop=\"true\" />\r\n    </div>\r\n```\r\n\r\n# ## Expected Behavior\r\n\r\nApp should start.\r\n\r\n# ## Actual Behavior\r\n\r\nApp fails to start due to unhandled exception:\r\n\r\nSystem.DllNotFoundException: libSkiaSharp\r\n   at SkiaSharp.SKData..cctor()\r\n\r\nThe page loading progress bar stays stuck at 100% and my Page won't load at all.\r\n\r\n# ## Version of SkiaSharp\r\n\r\n2.88.9 (Current)\r\n\r\n# ## Last Known Good Version of SkiaSharp\r\n\r\nOther (Please indicate in the description)\r\n\r\n# ## IDE / Editor\r\n\r\nVisual Studio (Windows)\r\n\r\n# ## Platform / Operating System\r\n\r\nWindows\r\n\r\n# ## Platform / Operating System Version\r\n\r\nWindows/Browser\r\n\r\n# ## Devices\r\n\r\n_No response_\r\n\r\n# ## Relevant Screenshots\r\n\r\n_No response_\r\n\r\n# ## Relevant Log Output\r\n\r\n_No response_\r\n\r\n# ## Code of Conduct\r\n\r\n- [X] I agree to follow this project's Code of Conduct",
     "title": "[BUG] .NET9 SkiaSharp.Views.Blazor my app won't start",
     "url": "https://github.com/mono/SkiaSharp/issues/3068"
+}
+
+###
+    
+POST {{LabeledByAI_HostAddress}}/api/label
+Content-Type: application/json
+
+{
+    "labels": [
+        "area/Build",
+        "area/Docs",
+        "area/HarfBuzzSharp",
+        "area/libHarfBuzzSharp.native",
+        "area/libSkiaSharp.native",
+        "area/SkiaSharp.HarfBuzz",
+        "area/SkiaSharp.Views.Blazor",
+        "area/SkiaSharp.Views.Forms",
+        "area/SkiaSharp.Views.Maui",
+        "area/SkiaSharp.Views.Uno",
+        "area/SkiaSharp.Views",
+        "area/SkiaSharp.Workbooks",
+        "area/SkiaSharp"
+    ],
+    "body": "My UI is broken, nothing shows on the screen!",
+    "title": "UI is blank",
+    "url": "https://github.com/mono/SkiaSharp/issues/1234"
 }
 
 ###

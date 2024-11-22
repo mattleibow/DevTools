@@ -29,7 +29,7 @@ public class LabelFunction(IChatClient chatClient, ILogger<LabelFunction> logger
     {
         logger.LogInformation("Starting to process a new issue...");
 
-        var newIssue = await GetNewIssue(request);
+        var newIssue = await GetNewIssueAsync(request);
 
         if (newIssue is null)
         {
@@ -82,7 +82,7 @@ public class LabelFunction(IChatClient chatClient, ILogger<LabelFunction> logger
         return new OkObjectResult(response.ToString());
     }
 
-    private async Task<NewIssue?> GetNewIssue(HttpRequest request)
+    private async Task<NewIssue?> GetNewIssueAsync(HttpRequest request)
     {
         try
         {

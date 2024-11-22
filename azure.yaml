@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: labeled-by-ai
+services:  
+  app:
+    language: dotnet
+    project: ./labeled-by-ai.AppHost/labeled-by-ai.AppHost.csproj
+    host: containerapp

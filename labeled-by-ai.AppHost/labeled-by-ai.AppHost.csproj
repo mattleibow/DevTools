@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Sdk Name="Aspire.AppHost.Sdk" Version="9.0.0" />
 
@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.0.0" />
+    <PackageReference Include="Aspire.Hosting.Azure.ApplicationInsights" Version="9.0.0" />
     <PackageReference Include="Aspire.Hosting.Azure.CognitiveServices" Version="9.0.0" />
     <PackageReference Include="Aspire.Hosting.Azure.Functions" Version="9.0.0-preview.5.24551.3" />
   </ItemGroup>
