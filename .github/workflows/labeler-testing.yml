@@ -10,11 +10,13 @@ jobs:
   test-workflow:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
       - name: Read the test issue json
         shell: pwsh
         id: loader
         run: |
-          $issue = Get-Content /.github/workflows/test-issue.json
+          $issue = Get-Content ".github/workflows/test-issue.json"
           "GITHUB_ISSUE=$issue" >> "$GITHUB_OUTPUT"
       - name: Do something when an issue is opened
         shell: pwsh
