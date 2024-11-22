@@ -118,7 +118,7 @@ runs:
         "SELECTED_REASON=$($response.reason)" >> $env:GITHUB_OUTPUT
         Write-Output "::endgroup::"
 
-    - name: Apply the label to the issue
+    - name: Apply the selected label to the issue
       shell: pwsh
       id: apply-label
       if: ${{ inputs.apply-label == 'true' && steps.get-label.outputs.SELECTED_LABEL != null }}
@@ -127,6 +127,6 @@ runs:
         SELECTED_LABEL: ${{ steps.get-label.outputs.SELECTED_LABEL }}
         SELECTED_REASON: ${{ steps.get-label.outputs.SELECTED_REASON }}
       run: |
-        "Applying the label to the issue.."
+        "Applying the selected label to the issue.."
         Write-Output "Found a great label to apply to the issue: $($env:SELECTED_LABEL)"
         Write-Output "The reasoning is: $($env:SELECTED_REASON)"
