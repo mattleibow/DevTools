@@ -121,7 +121,7 @@ runs:
     - name: Apply the label to the issue
       shell: pwsh
       id: apply-label
-      if: ${{ inputs.apply-label == 'true' and steps.get-label.outputs.SELECTED_LABEL != null }}
+      if: ${{ inputs.apply-label == 'true' && steps.get-label.outputs.SELECTED_LABEL != null }}
       env:
         GH_TOKEN: ${{ github.token }}
         SELECTED_LABEL: ${{ steps.get-label.outputs.SELECTED_LABEL }}
