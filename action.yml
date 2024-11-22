@@ -29,8 +29,6 @@ runs:
         LABEL_PATTERN: ${{ inputs.label-pattern }}          # the label pattern to match
         GITHUB_ISSUE_DEPRECATED: ${{ inputs.issue-json }}   # testing purposes only
       run: |
-        Write-Host "GITHUB_ISSUE: $env:GITHUB_ISSUE"
-        Write-Host "GITHUB_ISSUE_DEPRECATED: $env:GITHUB_ISSUE_DEPRECATED"
         # Parse the issue json from the event or fall back
         # to the deprecated method of reading the issue json
         # from the environment variable
@@ -38,23 +36,25 @@ runs:
         if (-not $issue) {
           $issue = "$env:GITHUB_ISSUE_DEPRECATED" | ConvertFrom-Json
         }
-        Write-Host "issue: $issue"
         
         $repoUrl = "${{ github.repositoryUrl }}"
 
-        Write-Host "Repository URL: $repoUrl"
-        Write-Host "Issue Url: $($issue.html_url)"
-        Write-Host "Issue Title: $($issue.title)"
+        Write-Output "::debug::GITHUB_ISSUE: $env:GITHUB_ISSUE"
+        Write-Output "::debug::GITHUB_ISSUE_DEPRECATED: $env:GITHUB_ISSUE_DEPRECATED"
+        Write-Output "::debug::issue: $issue"
+        Write-Output "::debug::Repository URL: $repoUrl"
+        Write-Output "::debug::Issue Url: $($issue.html_url)"
+        Write-Output "::debug::Issue Title: $($issue.title)"
 
         $labelRegex = "$env:LABEL_PATTERN"
         $labelSelector = "[.[] | select(.name | test(`"$labelRegex`"))]"
         $labelsResult = gh label list --repo "$repoUrl" --json name --jq "$labelSelector"
         $labels = $labelsResult | ConvertFrom-Json
-        Write-Host $labels
+        Write-Output "::debug::$labels"
         $labelsNames = $labels | Select-Object -ExpandProperty name
 
-        Write-Host "Filtered Labels:"
-        Write-Host $labelsNames
+        Write-Output "::debug::Filtered Labels:"
+        Write-Output "::debug::$labelsNames"
 
         $hostAddress = "https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io"
         $uri = "$hostAddress/api/label"
@@ -66,8 +66,8 @@ runs:
         }
         $body = $bodyObj | ConvertTo-Json
 
-        Write-Host "Request Body:"
-        Write-Host $body
+        Write-Output "::debug::Request Body:"
+        Write-Output "::debug::$body"
 
         $response = Invoke-RestMethod `
           -Method Post `
@@ -75,8 +75,8 @@ runs:
           -Body $body `
           -ContentType 'application/json'
 
-        Write-Host "Response:"
-        Write-Host $response
+        Write-Output "::debug::Response:"
+        Write-Output "::debug::$response"
 
         # TODO: Apply the labels to the issue
 
