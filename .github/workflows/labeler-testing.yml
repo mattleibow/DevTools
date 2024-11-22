@@ -1,0 +1,15 @@
+name: Local Testing Workflow
+
+on:
+  push:
+    branches: 
+      - dev/workflow-testing
+      - dev/action-testing
+
+jobs:
+  test-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Do nothing
+        shell: pwsh
+        run: Write-Output "Not doing anything!"
