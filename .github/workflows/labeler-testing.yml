@@ -23,7 +23,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $repoUrl = "${{ github.repositoryUrl }}"
-          $issue = $env:GITHUB_ISSUE | ConvertFrom-Json
+          Write-Host "$env:GITHUB_ISSUE"
+          $issue = "$env:GITHUB_ISSUE" | ConvertFrom-Json
           
           Write-Host "Repository URL: $repoUrl"
           Write-Host "Issue Url: $($issue.html_url)"
