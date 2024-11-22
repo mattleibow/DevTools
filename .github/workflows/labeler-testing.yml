@@ -10,60 +10,6 @@ jobs:
   test-workflow:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v2
-      - name: Read the test issue json
-        shell: pwsh
-        id: loader
-        run: |
-          $issue = Get-Content ".github/workflows/test-issue.json"
-          "GITHUB_ISSUE=$issue" >> "$GITHUB_OUTPUT"
-      - name: Do something when an issue is opened
-        shell: pwsh
-        env:
-          GITHUB_ISSUE: ${{ steps.loader.outputs.GITHUB_ISSUE }}
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $repoUrl = "${{ github.repositoryUrl }}"
-          Write-Host "$env:GITHUB_ISSUE"
-          $issue = "$env:GITHUB_ISSUE" | ConvertFrom-Json
-          
-          Write-Host "Repository URL: $repoUrl"
-          Write-Host "Issue Url: $($issue.html_url)"
-          Write-Host "Issue Title: $($issue.title)"
-
-          $labelRegex = "^area/.*"
-          $labelSelector = "[.[] | select(.name | test(`"$labelRegex`"))]"
-          $labelsResult = gh label list --repo "$repoUrl" --json name --jq "$labelSelector"
-          $labels = $labelsResult | ConvertFrom-Json
-          Write-Host $labels
-          $labelsNames = $labels | Select-Object -ExpandProperty name
-
-          Write-Host "Filtered Labels:"
-          Write-Host $labelsNames
-
-          $hostAddress = "https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io"
-          $uri = "$hostAddress/api/label"
-          $bodyObj = @{
-              title = $issue.title
-              body = $issue.body
-              url = $issue.html_url
-              labels = $labelsNames
-          }
-          $body = $bodyObj | ConvertTo-Json
-
-          Write-Host "Request Body:"
-          Write-Host $body
-
-          $response = Invoke-RestMethod `
-            -Method Post `
-            -Uri $uri `
-            -Body $body `
-            -ContentType 'application/json'
-
-          Write-Host "Response:"
-          Write-Host $response
-
-          # TODO: Apply the labels to the issue
-
-          echo "DONE!"
+      - uses: mattleibow/labeled-by-ai@dev/workflow-testing
+        with:
+          label-pattern: '^area/.*'
