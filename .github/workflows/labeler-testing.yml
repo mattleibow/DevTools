@@ -16,7 +16,7 @@ jobs:
         shell: pwsh
         id: loader
         run: |
-          $issue = Get-Content -Raw "${{ github.action_path }}/.github/workflows/test-issue.json"
+          $issue = Get-Content -Raw ".github/workflows/test-issue.json"
           $issue = $env:ISSUE_JSON | Join-String -Separator " "
           "GITHUB_ISSUE=$issue" >> "$GITHUB_OUTPUT"
       - uses: mattleibow/labeled-by-ai@dev/workflow-testing
