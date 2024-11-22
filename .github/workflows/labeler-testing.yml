@@ -16,7 +16,7 @@ jobs:
         shell: pwsh
         id: loader
         run: |
-          $issue = Get-Content -Raw ".github/workflows/test-issue.json"
+          $issue = Get-Content ".github/workflows/test-issue.json"
           echo $issue
           $issue = $issue | Join-String -Separator " "
           echo $issue
