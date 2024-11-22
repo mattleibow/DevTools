@@ -17,73 +17,63 @@ runs:
   using: "composite"
   steps:
 
-    - name: Set Greeting
-      run: echo "Hello $env:LABEL_PATTERN."
+    - name: Read the test issue json
       shell: pwsh
-      env:
-        LABEL_PATTERN: ${{ inputs.label-pattern }}
-
-    - name: Set GitHub Path
-      run: Get-ChildItem -Path "$env:GITHUB_ACTION_PATH"
-      shell: pwsh
-      env:
-        GITHUB_ACTION_PATH: ${{ github.action_path }}
-
-    # - name: Checkout the repository
-    #   uses: actions/checkout@v2
-    # - name: Read the test issue json
-    #   shell: pwsh
-    #   id: loader
-    #   run: |
-    #     $issue = Get-Content ".github/workflows/test-issue.json"
-    #     "GITHUB_ISSUE=$issue" >> "$GITHUB_OUTPUT"
+      id: loader
+      # env:
+      #   GITHUB_ISSUE: ${{ toJson(github.event.issue) }}
+      run: |
+        $issue = Get-Content "${{ github.action_path }}/.github/workflows/test-issue.json"
+        "GITHUB_ISSUE=$issue" >> "$GITHUB_OUTPUT"
     
-    # - name: Do something when an issue is opened
-    #   shell: pwsh
-    #   env:
-    #     GITHUB_ISSUE: ${{ steps.loader.outputs.GITHUB_ISSUE }}
-    #     GH_TOKEN: ${{ github.token }}
-    #   run: |
-    #     $repoUrl = "${{ github.repositoryUrl }}"
-    #     Write-Host "$env:GITHUB_ISSUE"
-    #     $issue = "$env:GITHUB_ISSUE" | ConvertFrom-Json
+    - name: Do something when an issue is opened
+      id: get-label
+      shell: pwsh
+      env:
+        GITHUB_ISSUE: ${{ steps.loader.outputs.GITHUB_ISSUE }}
+        GH_TOKEN: ${{ github.token }}
+        LABEL_PATTERN: ${{ inputs.label-pattern }}
+      run: |
+        $repoUrl = "${{ github.repositoryUrl }}"
+        Write-Host "$env:GITHUB_ISSUE"
+        $issue = "$env:GITHUB_ISSUE" | ConvertFrom-Json
         
-    #     Write-Host "Repository URL: $repoUrl"
-    #     Write-Host "Issue Url: $($issue.html_url)"
-    #     Write-Host "Issue Title: $($issue.title)"
+        Write-Host "Repository URL: $repoUrl"
+        Write-Host "Issue Url: $($issue.html_url)"
+        Write-Host "Issue Title: $($issue.title)"
 
-    #     $labelRegex = "^area/.*"
-    #     $labelSelector = "[.[] | select(.name | test(`"$labelRegex`"))]"
-    #     $labelsResult = gh label list --repo "$repoUrl" --json name --jq "$labelSelector"
-    #     $labels = $labelsResult | ConvertFrom-Json
-    #     Write-Host $labels
-    #     $labelsNames = $labels | Select-Object -ExpandProperty name
+        $labelRegex = "$env:LABEL_PATTERN"
+        $labelSelector = "[.[] | select(.name | test(`"$labelRegex`"))]"
+        $labelsResult = gh label list --repo "$repoUrl" --json name --jq "$labelSelector"
+        $labels = $labelsResult | ConvertFrom-Json
+        Write-Host $labels
+        $labelsNames = $labels | Select-Object -ExpandProperty name
 
-    #     Write-Host "Filtered Labels:"
-    #     Write-Host $labelsNames
+        Write-Host "Filtered Labels:"
+        Write-Host $labelsNames
 
-    #     $hostAddress = "https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io"
-    #     $uri = "$hostAddress/api/label"
-    #     $bodyObj = @{
-    #         title = $issue.title
-    #         body = $issue.body
-    #         url = $issue.html_url
-    #         labels = $labelsNames
-    #     }
-    #     $body = $bodyObj | ConvertTo-Json
+        $hostAddress = "https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io"
+        $uri = "$hostAddress/api/label"
+        $bodyObj = @{
+            title = $issue.title
+            body = $issue.body
+            url = $issue.html_url
+            labels = $labelsNames
+        }
+        $body = $bodyObj | ConvertTo-Json
 
-    #     Write-Host "Request Body:"
-    #     Write-Host $body
+        Write-Host "Request Body:"
+        Write-Host $body
 
-    #     $response = Invoke-RestMethod `
-    #       -Method Post `
-    #       -Uri $uri `
-    #       -Body $body `
-    #       -ContentType 'application/json'
+        $response = Invoke-RestMethod `
+          -Method Post `
+          -Uri $uri `
+          -Body $body `
+          -ContentType 'application/json'
 
-    #     Write-Host "Response:"
-    #     Write-Host $response
+        Write-Host "Response:"
+        Write-Host $response
 
-    #     # TODO: Apply the labels to the issue
+        # TODO: Apply the labels to the issue
 
-    #     echo "DONE!"
+        echo "DONE!"
