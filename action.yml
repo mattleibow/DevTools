@@ -29,12 +29,15 @@ runs:
       run: |
         $issue = $env:ISSUE_JSON | Join-String -Separator " "
         "GITHUB_ISSUE_DEPRECATED=$issue" >> $env:GITHUB_OUTPUT
+        echo $issue
+        echo $env:GITHUB_OUTPUT
+        Get-Content $env:GITHUB_OUTPUT
     
     - name: Do something when an issue is opened
       id: get-label
       shell: pwsh
       env:
-        GITHUB_ISSUE: ${{ steps.loader.outputs.GITHUB_ISSUE }}
+        GITHUB_ISSUE: ${{ toJson(github.event.issue) }}
         GITHUB_ISSUE_DEPRECATED: ${{ steps.loader.outputs.GITHUB_ISSUE_DEPRECATED }}
         GH_TOKEN: ${{ github.token }}
         LABEL_PATTERN: ${{ inputs.label-pattern }}
