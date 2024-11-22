@@ -1,0 +1,64 @@
+name: Apply labels using AI
+
+on:
+  issues:
+    types: [opened]
+  issue_comment: 
+    types: [created]
+
+jobs:
+  create-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: View the github context
+        run: echo "$GITHUB_CONTEXT"
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+      - name: Do something when an issue is opened
+        shell: pwsh
+        env:
+          GITHUB_ISSUE: ${{ toJson(github.event.issue) }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $repoUrl = "${{ github.repositoryUrl }}"
+          $issue = $env:GITHUB_ISSUE | ConvertFrom-Json
+          
+          Write-Host "Repository URL: $repoUrl"
+          Write-Host "Issue Url: $($issue.html_url)"
+          Write-Host "Issue Title: $($issue.title)"
+
+          $labelRegex = "^area/.*"
+          $labelSelector = "[.[] | select(.name | test(`"$labelRegex`"))]"
+          $labelsResult = gh label list --repo "$repoUrl" --json name --jq "$labelSelector"
+          $labels = $labelsResult | ConvertFrom-Json
+          Write-Host $labels
+          $labelsNames = $labels | Select-Object -ExpandProperty name
+
+          Write-Host "Filtered Labels:"
+          Write-Host $labelsNames
+
+          $hostAddress = "https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io"
+          $uri = "$hostAddress/api/label"
+          $bodyObj = @{
+              title = $issue.title
+              body = $issue.body
+              url = $issue.html_url
+              labels = $labelsNames
+          }
+          $body = $bodyObj | ConvertTo-Json
+
+          Write-Host "Request Body:"
+          Write-Host $body
+
+          $response = Invoke-RestMethod `
+            -Method Post `
+            -Uri $uri `
+            -Body $body `
+            -ContentType 'application/json'
+
+          Write-Host "Response:"
+          Write-Host $response
+
+          # TODO: Apply the labels to the issue
+
+          echo "DONE!"
