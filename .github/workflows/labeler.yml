@@ -26,6 +26,8 @@ jobs:
           Write-Host "Repository URL: $repoUrl"
           Write-Host "Issue Url: $($issue.html_url)"
           Write-Host "Issue Title: $($issue.title)"
+          Write-Host "Issue Body:"
+          Write-Host "$($issue.body)"
 
           $labelRegex = "^area/.*"
           $labelSelector = "[.[] | select(.name | test(`"$labelRegex`"))]"
