@@ -133,4 +133,3 @@ runs:
         Write-Output "Found a great label to apply to the issue: $($env:SELECTED_LABEL)"
         Write-Output "The reasoning is: $($env:SELECTED_REASON)"
         Write-Output "::endgroup::"
-        
