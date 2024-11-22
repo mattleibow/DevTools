@@ -98,6 +98,9 @@ runs:
           exit 0
         }
 
+        Write-Output "Found a great label to apply to the issue: $($response.label)"
+        Write-Output "The reasoning is: $($response.reason)"
+
         # TODO: Apply the labels to the issue
 
         echo "DONE!"
