@@ -7,10 +7,11 @@ on:
       - dev/action-testing
 
 jobs:
-  create-issue:
+  test-workflow:
     runs-on: ubuntu-latest
     steps:
       - name: Read the test issue json
+        shell: pwsh
         id: loader
         run: |
           $issue = Get-Content .github/workflows/test-issue.json
