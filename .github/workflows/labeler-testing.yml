@@ -1,4 +1,4 @@
-name: Local Testing Workflow
+name: Local Testing Workflow (Writeable)
 
 on:
   push:
