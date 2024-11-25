@@ -7,13 +7,10 @@ inputs:
   # at a time and the inputs are used in the order of precedence
   # - exact labels (labels)
   # - label patern matching (label-pattern)
-  # - using the config file (config)
   labels:
     description: 'The list of labels to look through.'
   label-pattern:
     description: 'The regex pattern to use to match the labels.'
-  config:
-    description: 'The configuration file for the labels and patterns.'
   # inputs to allow for control of the action
   apply-label:
     default: 'true'
@@ -46,7 +43,6 @@ runs:
         GITHUB_ISSUE: ${{ toJson(github.event.issue) }}     # the issue json from the event
         LABEL_NAMES: ${{ inputs.labels }}                   # the exact labels to look through
         LABEL_PATTERN: ${{ inputs.label-pattern }}          # the label pattern to match
-        CONFIG_FILE: ${{ inputs.config }}                   # the configuration file for the action
         GITHUB_ISSUE_DEPRECATED: ${{ inputs.issue-json }}   # testing purposes only
       run: |
         "Finding the best label using AI.."
@@ -96,9 +92,6 @@ runs:
             exit 1
           }
           $labelsNames = $labels | Select-Object -ExpandProperty name
-        # } elseif ($env:CONFIG_FILE) {
-        #   $config = Get-Content $env:CONFIG_FILE | ConvertFrom-Json
-        #   $labels = $config.labels
         }
 
         Write-Output "Filtered Labels:"
