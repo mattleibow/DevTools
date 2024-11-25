@@ -17,10 +17,13 @@ inputs:
     description: 'The json object of the issue to be labeled.'
     deprecationMessage: 'This is deprecated and will be removed.'
 
-# outputs:
-#   label:
-#     description: "The label that will be applied to the issue"
-#     value: ${{ steps.random-number-generator.outputs.random-number }}
+outputs:
+  label:
+    description: "The label that will be applied to the issue"
+    value: ${{ steps.get-label.outputs.SELECTED_LABEL }}
+  reason:
+    description: "The reasopn for the label being selected"
+    value: ${{ steps.get-label.outputs.SELECTED_REASON }}
 
 runs:
   using: "composite"
