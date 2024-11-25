@@ -167,7 +167,7 @@ runs:
 
         $body = 
           "The AI has selected the label ``$label`` for this issue and gave the following reason: `n" +
-          "> $reason `n"
+          "> $reason `n" +
           "If this is not correct, you can change the label to the correct one."
 
         gh issue comment --repo "$repoUrl" $issueNumber --body "$body"
