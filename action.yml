@@ -137,7 +137,7 @@ runs:
         Write-Output "::group::Applying the label..."
 
         $repoUrl = "${{ github.repositoryUrl }}"
-        $issueNumber = "${{ github.issue.number }}"
+        $issueNumber = "${{ github.event.issue.number }}"
         $label = "$env:SELECTED_LABEL"
 
         gh issue edit --repo "$repoUrl" $issueNumber --add-label "$label"
@@ -158,7 +158,7 @@ runs:
         Write-Output "::group::Adding the comment..."
 
         $repoUrl = "${{ github.repositoryUrl }}"
-        $issueNumber = "${{ github.issue.number }}"
+        $issueNumber = "${{ github.event.issue.number }}"
         $label = "$env:SELECTED_LABEL"
         $reason = "$env:SELECTED_REASON"
 
