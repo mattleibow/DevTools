@@ -10,6 +10,9 @@ inputs:
   apply-label:
     default: 'true'
     description: 'Whether or not to apply the label automatically.'
+  add-comment:
+    default: 'true'
+    description: 'Whether or not to Write a comment on the issue after applying the label with an explanation.'
   issue-json:
     description: 'The json object of the issue to be labeled.'
     deprecationMessage: 'This is deprecated and will be removed.'
@@ -131,6 +134,39 @@ runs:
       run: |
         "Applying the selected label to the issue.."
 
-        Write-Output "Found a great label to apply to the issue: $($env:SELECTED_LABEL)"
-        Write-Output "The reasoning is: $($env:SELECTED_REASON)"
+        Write-Output "::group::Applying the label..."
 
+        $repoUrl = "${{ github.repositoryUrl }}"
+        $issueNumber = "${{ github.issue.number }}"
+        $label = "$env:SELECTED_LABEL"
+
+        gh issue edit --repo "$repoUrl" $issueNumber --add-label "$label"
+
+        Write-Output "::endgroup::"
+
+    - name: Add a comment on the issue with a reason for the label
+      shell: pwsh
+      id: add-comment
+      if: ${{ inputs.add-comment == 'true' && steps.get-label.outputs.SELECTED_LABEL != null && steps.get-label.outputs.SELECTED_REASON != null }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        SELECTED_LABEL: ${{ steps.get-label.outputs.SELECTED_LABEL }}
+        SELECTED_REASON: ${{ steps.get-label.outputs.SELECTED_REASON }}
+      run: |
+        "Adding a comment on the issue with a reason for the label.."
+
+        Write-Output "::group::Adding the comment..."
+
+        $repoUrl = "${{ github.repositoryUrl }}"
+        $issueNumber = "${{ github.issue.number }}"
+        $label = "$env:SELECTED_LABEL"
+        $reason = "$env:SELECTED_REASON"
+
+        $body = 
+          "The AI has selected the label ``$label`` for this issue because: `n" +
+          "$reason `n"
+          "If this is not correct, you can change the label to the correct one."
+
+        gh issue comment --repo "$repoUrl" $issueNumber --body "$body"
+
+        Write-Output "::endgroup::"
