@@ -85,7 +85,7 @@ runs:
             $env:LABEL_NAMES -split '\r|\n' |
             ForEach-Object { $_.Trim() } |
             Where-Object { $_ -ne '' }
-        } else if ($env:LABEL_PATTERN) {
+        } elseif ($env:LABEL_PATTERN) {
           $labelRegex = "$env:LABEL_PATTERN"
           $labelSelector = "[.[] | select(.name | test(`"$labelRegex`"))]"
           $labelsResult = gh label list --repo "$repoUrl" --json name --jq "$labelSelector"
