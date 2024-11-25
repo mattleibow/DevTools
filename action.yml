@@ -119,13 +119,14 @@ runs:
           exit 0
         }
 
+        Write-Output "::endgroup::"
+
         Write-Output "Found a great label to apply to the issue: $($response.label)"
         Write-Output "The reasoning is: $($response.reason)"
 
         "ISSUE_NUMBER=$($issue.number)" >> $env:GITHUB_OUTPUT
         "SELECTED_LABEL=$($response.label)" >> $env:GITHUB_OUTPUT
         "SELECTED_REASON=$($response.reason)" >> $env:GITHUB_OUTPUT
-        Write-Output "::endgroup::"
 
     - name: Apply the selected label to the issue
       shell: pwsh
