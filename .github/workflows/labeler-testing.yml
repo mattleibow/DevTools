@@ -23,5 +23,8 @@ jobs:
           "GITHUB_ISSUE=$issue" >> $env:GITHUB_OUTPUT
       - uses: mattleibow/labeled-by-ai@dev/action-testing
         with:
-          label-pattern: '^area/.*'
+          labels: |
+            area/action
+            area/ai
+            area/function
           issue-json: ${{ steps.loader.outputs.GITHUB_ISSUE }} # testing pipeline only
