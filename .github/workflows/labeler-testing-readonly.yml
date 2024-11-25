@@ -1,4 +1,4 @@
-name: Local Testing Workflow (Writeable)
+name: Local Testing Workflow (Read Only)
 
 on:
   push:
@@ -9,8 +9,6 @@ on:
 jobs:
   test-workflow:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
@@ -25,3 +23,5 @@ jobs:
         with:
           label-pattern: '^area/.*'
           issue-json: ${{ steps.loader.outputs.GITHUB_ISSUE }} # testing pipeline only
+          apply-label: 'false'
+          add-comment: 'false'
