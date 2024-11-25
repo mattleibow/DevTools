@@ -3,16 +3,22 @@ name: 'Apply Label Using AI'
 description: 'Use AI to find the best label to apply to a new issue'
 
 inputs:
+  # inputs to allow for configuration, only one should be used
+  # at a time and the inputs are used in the order of precedence
+  # - exact labels (labels)
+  # - label patern matching (label-pattern)
   labels:
-    description: 'The list of labels available.'
+    description: 'The list of labels to look through.'
   label-pattern:
     description: 'The regex pattern to use to match the labels.'
+  # inputs to allow for control of the action
   apply-label:
     default: 'true'
     description: 'Whether or not to apply the label automatically.'
   add-comment:
     default: 'true'
     description: 'Whether or not to Write a comment on the issue after applying the label with an explanation.'
+  # inputs to allow for testing purposes
   issue-json:
     description: 'The json object of the issue to be labeled.'
     deprecationMessage: 'This is deprecated and will be removed.'
@@ -35,6 +41,7 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}                       # for the gh CLI tool
         GITHUB_ISSUE: ${{ toJson(github.event.issue) }}     # the issue json from the event
+        LABEL_NAMES: ${{ inputs.labels }}                   # the exact labels to look through
         LABEL_PATTERN: ${{ inputs.label-pattern }}          # the label pattern to match
         GITHUB_ISSUE_DEPRECATED: ${{ inputs.issue-json }}   # testing purposes only
       run: |
@@ -69,16 +76,23 @@ runs:
         Write-Output "::endgroup::"
 
         Write-Output "::group::Loading labels..."
-        $labelRegex = "$env:LABEL_PATTERN"
-        $labelSelector = "[.[] | select(.name | test(`"$labelRegex`"))]"
-        $labelsResult = gh label list --repo "$repoUrl" --json name --jq "$labelSelector"
-        $labels = $labelsResult | ConvertFrom-Json
-        Write-Output "::debug::$labels"
-        if (-not $labels) {
-          Write-Error "Failed to get labels from the repository."
-          exit 1
+        if ($env:LABEL_NAMES) {
+          $labelsNames =
+            $env:LABEL_NAMES -split '\r|\n' |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { $_ -ne '' }
+        } elseif ($env:LABEL_PATTERN) {
+          $labelRegex = "$env:LABEL_PATTERN"
+          $labelSelector = "[.[] | select(.name | test(`"$labelRegex`"))]"
+          $labelsResult = gh label list --repo "$repoUrl" --json name --jq "$labelSelector"
+          $labels = $labelsResult | ConvertFrom-Json
+          Write-Output "::debug::$labels"
+          if (-not $labels) {
+            Write-Error "Failed to get labels from the repository."
+            exit 1
+          }
+          $labelsNames = $labels | Select-Object -ExpandProperty name
         }
-        $labelsNames = $labels | Select-Object -ExpandProperty name
 
         Write-Output "Filtered Labels:"
         Write-Output "$labelsNames"
