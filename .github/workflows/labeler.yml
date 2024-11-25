@@ -2,10 +2,10 @@ name: Apply labels using AI
 
 on:
   issues:
-    types: [opened]
+    types: [opened, reopened]
 
 jobs:
-  test-workflow:
+  apply-label-and-add-comment:
     runs-on: ubuntu-latest
     permissions:
       issues: write
