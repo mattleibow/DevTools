@@ -98,7 +98,7 @@ runs:
             owner = "${{ github.event.repository.owner.login }}"
             repo = "${{ github.event.repository.name }}"
             number = $issue.number
-          },
+          }
           labels = @{
               names = $labelsNames
               pattern = $labelRegex
