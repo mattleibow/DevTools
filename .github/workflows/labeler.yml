@@ -10,6 +10,6 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: mattleibow/labeled-by-ai@dev/action-testing
+      - uses: mattleibow/labeled-by-ai@main
         with:
           label-pattern: '^area/.*'

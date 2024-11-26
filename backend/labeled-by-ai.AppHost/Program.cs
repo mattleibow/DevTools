@@ -25,8 +25,7 @@ var func = builder
     .AddAzureFunctionsProject<Projects.LabeledByAI>("labeled-by-ai")
     .WithExternalHttpEndpoints()
     .WithHostStorage(funcStorage)
-    .WithReference(ai);
-if (insights is not null)
-    func.WithReference(insights);
+    .WithReference(ai)
+    .WithOptionalReference(insights);
 
 builder.Build().Run();
