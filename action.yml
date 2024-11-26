@@ -62,37 +62,31 @@ runs:
           exit 1
         }
         
-        $repoUrl = "${{ github.repositoryUrl }}"
-
-        # Write-Output "::debug::GITHUB_ISSUE: $env:GITHUB_ISSUE"
-        # Write-Output "::debug::GITHUB_ISSUE_DEPRECATED: $env:GITHUB_ISSUE_DEPRECATED"
-        # Write-Output "::debug::issue: $issue"
-
-        Write-Output "Repository URL: $repoUrl"
-        Write-Output "Issue Url: $($issue.html_url)"
-        Write-Output "Issue Title: $($issue.title)"
+        Write-Output "Issue Number:"
+        Write-Output $issue.number
+        Write-Output "Issue Title:"
+        Write-Output $issue.title
         Write-Output "Issue Body:"
-        Write-Output "$($issue.body)"
-        Write-Output "::endgroup::"
+        Write-Output $issue.body
 
-        Write-Output "::group::Loading labels..."
+        Write-Output "Labels:"
         if ($env:LABEL_NAMES) {
           $labelsNames =
             $env:LABEL_NAMES -split '\r|\n' |
             ForEach-Object { $_.Trim() } |
             Where-Object { $_ -ne '' }
+          Write-Output "- Labels:"
+          $labelsNames | ForEach-Object { Write-Output "  - $_" }
         } elseif ($env:LABEL_PATTERN) {
           $labelRegex = "$env:LABEL_PATTERN"
+          Write-Output "- Pattern:"
+          Write-Output "  $labelRegex"
         }
 
-        # Write-Output "Filtered Labels:"
-        # Write-Output "$labelsNames"
         Write-Output "::endgroup::"
 
         Write-Output "::group::Asking the AI to find the best label..."
-        $hostAddress = "https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io"
-        $uri = "$hostAddress/api/label"
-        $bodyObj = @{
+        $body = ConvertTo-Json -InputObject @{
           version = 1
           issue = @{
             owner = "${{ github.event.repository.owner.login }}"
@@ -104,24 +98,18 @@ runs:
               pattern = $labelRegex
           }
         }
-        $body = $bodyObj | ConvertTo-Json
 
+        $hostAddress = "https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io"
+        $uri = "$hostAddress/api/label"
         $headers = @{
           'X-GitHub-Token' = "$env:GH_TOKEN"
         }
-
-        # Write-Output "::debug::Request Body:"
-        # Write-Output "::debug::$body"
-
         $response = Invoke-RestMethod `
           -Method Post `
           -Uri $uri `
           -Body $body `
           -ContentType 'application/json' `
           -Headers $headers
-
-        # Write-Output "::debug::Response:"
-        # Write-Output "::debug::$response"
 
         if (-not $response) {
           Write-Error "Failed to get a response from the AI service."
