@@ -1,7 +1,9 @@
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var insights = builder.AddAzureApplicationInsights("app-insights");
+var insights = builder.ExecutionContext.IsPublishMode
+    ? builder.AddAzureApplicationInsights("app-insights")
+    : null;
 
 //var openai = !builder.ExecutionContext.IsPublishMode
 //    ? builder.AddConnectionString("openai") // use external
@@ -19,7 +21,8 @@ var func = builder
     .AddAzureFunctionsProject<Projects.LabeledByAI>("labeled-by-ai")
     .WithExternalHttpEndpoints()
     .WithHostStorage(funcStorage)
-    .WithReference(openai)
-    .WithReference(insights);
+    .WithReference(openai);
+if (insights is not null)
+    func.WithReference(insights);
 
 builder.Build().Run();
