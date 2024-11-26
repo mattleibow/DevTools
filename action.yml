@@ -83,31 +83,32 @@ runs:
             Where-Object { $_ -ne '' }
         } elseif ($env:LABEL_PATTERN) {
           $labelRegex = "$env:LABEL_PATTERN"
-          $labelSelector = "[.[] | select(.name | test(`"$labelRegex`"))]"
-          $labelsResult = gh label list --repo "$repoUrl" --json name --jq "$labelSelector" --limit 100
-          $labels = $labelsResult | ConvertFrom-Json
-          Write-Output "::debug::$labels"
-          if (-not $labels) {
-            Write-Error "Failed to get labels from the repository."
-            exit 1
-          }
-          $labelsNames = $labels | Select-Object -ExpandProperty name
         }
 
-        Write-Output "Filtered Labels:"
-        Write-Output "$labelsNames"
+        # Write-Output "Filtered Labels:"
+        # Write-Output "$labelsNames"
         Write-Output "::endgroup::"
 
         Write-Output "::group::Asking the AI to find the best label..."
         $hostAddress = "https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io"
         $uri = "$hostAddress/api/label"
         $bodyObj = @{
-            title = $issue.title
-            body = $issue.body
-            url = $issue.html_url
-            labels = $labelsNames
+          version = 1
+          issue = @{
+            owner = "${{ github.event.repository.owner.login }}",
+            repo = "${{ github.event.repository.name }}",
+            number = ${{ github.event.issue.number }}
+          },
+          labels = @{
+              names = $labelsNames
+              pattern = $labelRegex
+          }
         }
         $body = $bodyObj | ConvertTo-Json
+
+        $headers = @{
+          'X-GitHub-Token' = "$env:GH_TOKEN"
+        }
 
         # Write-Output "::debug::Request Body:"
         # Write-Output "::debug::$body"
@@ -116,7 +117,8 @@ runs:
           -Method Post `
           -Uri $uri `
           -Body $body `
-          -ContentType 'application/json'
+          -ContentType 'application/json' `
+          -Headers $headers
 
         # Write-Output "::debug::Response:"
         # Write-Output "::debug::$response"
