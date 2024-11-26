@@ -95,8 +95,8 @@ runs:
         $bodyObj = @{
           version = 1
           issue = @{
-            owner = "${{ github.event.repository.owner.login }}",
-            repo = "${{ github.event.repository.name }}",
+            owner = "${{ github.event.repository.owner.login }}"
+            repo = "${{ github.event.repository.name }}"
             number = ${{ github.event.issue.number }}
           },
           labels = @{
