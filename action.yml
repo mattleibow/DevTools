@@ -111,7 +111,7 @@ runs:
           -ContentType 'application/json' `
           -Headers $headers
 
-        Write-Output "The AI replied with a status of: $($response.Status)"
+        Write-Output "The AI replied with a status of: $($response.StatusCode)"
 
         if (-not $response) {
           Write-Error "Failed to get a response from the AI service."
