@@ -1,9 +1,6 @@
 ﻿# For more info on HTTP files go to https://aka.ms/vs/httpfile
 
-@LabeledByAI_HostAddress = http://localhost:7200
-@LabeledByAI_HostAddress = https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io/
-
-POST {{LabeledByAI_HostAddress}}/api/label
+POST {{HostAddress}}/api/label
 Content-Type: application/json
 
 {
@@ -29,7 +26,7 @@ Content-Type: application/json
 
 ###
     
-POST {{LabeledByAI_HostAddress}}/api/label
+POST {{HostAddress}}/api/label
 Content-Type: application/json
 
 {
