@@ -1,3 +1,4 @@
+using LabeledByAI.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -7,7 +8,6 @@ using Octokit.GraphQL;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace LabeledByAI;
 
@@ -26,17 +26,6 @@ public class LabelFunction(IChatClient chatClient, ILogger<LabelFunction> logger
         string Owner,
         string Repo,
         int Number);
-
-    public record RepoLabel(
-        string Id,
-        string Name,
-        string Description);
-
-    public record RepoIssue(
-        string Id,
-        int Number,
-        string Title,
-        string Body);
 
     private static readonly JsonSerializerOptions SerializerOptions =
         new()
@@ -62,26 +51,29 @@ public class LabelFunction(IChatClient chatClient, ILogger<LabelFunction> logger
 
         logger.LogInformation("The new issue is a valid object.");
 
-        // Initialize GitHub client with the personal access token
+        // initialize the GitHub connection
         var githubToken = request.Headers["X-GitHub-Token"].ToString();
         var githubConnection = new Connection(
             new ProductHeaderValue("labeled-by-ai"), githubToken);
+        var github = new GitHubRepository(
+            githubConnection,
+            newIssue.Issue.Owner,
+            newIssue.Issue.Repo);
 
         // load all labels from the repository
         logger.LogInformation("Loading all labels from the repo...");
-        var labels = await GetLabelsAsync(newIssue.Issue, githubConnection);
-        var filteredLabels = FilterLabels(labels, newIssue.Labels);
+        var labels = await github.GetLabelsAsync(new(newIssue.Labels.Names, newIssue.Labels.Pattern));
 
         // load issue details from the repository
         logger.LogInformation("Loading the issue details...");
-        var issue = await GetIssueAsync(newIssue.Issue, githubConnection);
+        var issue = await github.GetIssueAsync(newIssue.Issue.Number);
 
         logger.LogInformation("Generating OpenAI request...");
 
         IList<ChatMessage> messages =
         [
-            new(ChatRole.System, GetSystemPrompt(filteredLabels)),
-            new(ChatRole.Assistant, GetIssuePrompt(issue.Title, issue.Body)),
+            new(ChatRole.System, GetSystemPrompt(labels)),
+            new(ChatRole.Assistant, GetIssuePrompt(issue)),
         ];
 
         logger.LogInformation(
@@ -95,7 +87,7 @@ public class LabelFunction(IChatClient chatClient, ILogger<LabelFunction> logger
 
         var options = new ChatOptions
         {
-            MaxOutputTokens = 400,
+            MaxOutputTokens = 1000,
         };
         var response = await chatClient.CompleteAsync(messages, options);
 
@@ -109,72 +101,6 @@ public class LabelFunction(IChatClient chatClient, ILogger<LabelFunction> logger
             """);
 
         return new OkObjectResult(response.ToString());
-    }
-
-    private async Task<RepoIssue> GetIssueAsync(LabelRequestIssue issueInfo, Connection connection)
-    {
-        // Define the query to get the issue from the repository
-        var owner = issueInfo.Owner;
-        var repo = issueInfo.Repo;
-        var number = issueInfo.Number;
-        var query = new Query()
-            .Repository(owner: owner, name: repo)
-            .Issue(number: number)
-            .Select(label => new RepoIssue(
-                label.Id.ToString(),
-                label.Number,
-                label.Title,
-                label.Body
-            ))
-            .Compile();
-
-        // Execute the query
-        var issue = await connection.Run(query);
-
-        // Return the issue
-        return issue;
-    }
-
-    private IList<RepoLabel> FilterLabels(IList<RepoLabel> labels, LabelRequestLabels labelInfo)
-    {
-        var filtered = new List<RepoLabel>();
-
-        if (labelInfo.Names is not null)
-        {
-            var expl = labels.Where(l => labelInfo.Names.Contains(l.Name));
-            filtered.AddRange(expl);
-        }
-
-        if (labelInfo.Pattern is not null)
-        {
-            var pattern = new Regex(labelInfo.Pattern);
-            filtered.AddRange(labels.Where(label => pattern.IsMatch(label.Name)));
-        }
-
-        return filtered;
-    }
-
-    private async Task<IList<RepoLabel>> GetLabelsAsync(LabelRequestIssue issueInfo, Connection connection)
-    {
-        // Define the query to get all labels in a repository
-        var owner = issueInfo.Owner;
-        var repo = issueInfo.Repo;
-        var query = new Query()
-            .Repository(owner: owner, name: repo)
-            .Labels()
-            .AllPages()
-            .Select(label => new RepoLabel(
-                label.Id.ToString(),
-                label.Name,
-                label.Description
-            ))
-            .Compile();
-
-        // Execute the query
-        var labels = await connection.Run(query);
-
-        // Return the labels
-        return labels.ToList();
     }
 
     private bool ValidateRequest([NotNullWhen(true)] LabelRequest? newIssue, [NotNullWhen(false)] out IActionResult? errorResult)
@@ -215,7 +141,7 @@ public class LabelFunction(IChatClient chatClient, ILogger<LabelFunction> logger
         }
     }
 
-    private static string GetSystemPrompt(params IEnumerable<RepoLabel> labels) =>
+    private static string GetSystemPrompt(params IEnumerable<GitHubLabel> labels) =>
         $$"""
         You are an expert developer who is able to correctly and
         accurately assign labels to new issues that are opened.
@@ -228,11 +154,6 @@ public class LabelFunction(IChatClient chatClient, ILogger<LabelFunction> logger
         you have selected is not in the list of labels, then
         do not assign any labels.
 
-        You also provide a reason as to why that label was 
-        selected to make sure that everyone knows why. Also,
-        mention other related labels and why they were not a
-        good selection.
-
         If no labels match or can be assigned, then you are to
         reply with a null label and null reason. 
         The only labels that are valid for assignment are found
@@ -241,6 +162,12 @@ public class LabelFunction(IChatClient chatClient, ILogger<LabelFunction> logger
 
         Some labels have an additional description that should be
         used in order to find the best match.
+
+        You are to also provide a reason as to why that label was 
+        selected to make sure that everyone knows why. Also, you
+        need to make sure to mention other related labels and why
+        they were not a good selection for the issue. Give a reason
+        in 50 to 100 words.
 
         ===== Available Labels =====
         {{GetPromptLabelList(labels)}}
@@ -255,7 +182,7 @@ public class LabelFunction(IChatClient chatClient, ILogger<LabelFunction> logger
 
         """;
 
-    private static string GetPromptLabelList(IEnumerable<RepoLabel> labels)
+    private static string GetPromptLabelList(IEnumerable<GitHubLabel> labels)
     {
         var sb = new StringBuilder();
 
@@ -271,13 +198,13 @@ public class LabelFunction(IChatClient chatClient, ILogger<LabelFunction> logger
         return sb.ToString();
     }
 
-    private static string GetIssuePrompt(string? title, string body) => $"""
+    private static string GetIssuePrompt(GitHubIssue issue) => $"""
         A new issue has arrived, please label it correctly and accurately.
         
         The issue title is:
-        {title ?? "-"}
+        {issue.Title ?? "-"}
         
         The issue body is:
-        {body}
+        {issue.Body}
         """;
 }

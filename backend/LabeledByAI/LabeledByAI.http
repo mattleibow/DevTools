@@ -19,3 +19,21 @@ X-GitHub-Token: {{GitHubToken}}
 }
 
 ###
+
+POST {{HostAddress}}/api/label
+Content-Type: application/json
+X-GitHub-Token: {{GitHubToken}}
+
+{
+  "version": 1,
+  "issue": {
+    "owner": "mono",
+    "repo": "SkiaSharp",
+    "number": 3074
+  },
+  "labels": {
+    "pattern": "^area/.+"
+  }
+}
+
+###

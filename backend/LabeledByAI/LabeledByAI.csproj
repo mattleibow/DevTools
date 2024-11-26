@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\labeled-by-ai.ServiceDefaults\labeled-by-ai.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\LabeledByAI.Services\LabeledByAI.Services.csproj" />
   </ItemGroup>
 
   <ItemGroup>

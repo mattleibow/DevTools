@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "labeled-by-ai.AppHost", "la
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "labeled-by-ai.ServiceDefaults", "labeled-by-ai.ServiceDefaults\labeled-by-ai.ServiceDefaults.csproj", "{3F892DB2-87D0-4C06-B3A4-3886193F0060}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LabeledByAI.Services", "LabeledByAI.Services\LabeledByAI.Services.csproj", "{6A13233C-865E-4A1E-8FCA-14BC39E7459E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{3F892DB2-87D0-4C06-B3A4-3886193F0060}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F892DB2-87D0-4C06-B3A4-3886193F0060}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F892DB2-87D0-4C06-B3A4-3886193F0060}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A13233C-865E-4A1E-8FCA-14BC39E7459E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A13233C-865E-4A1E-8FCA-14BC39E7459E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A13233C-865E-4A1E-8FCA-14BC39E7459E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A13233C-865E-4A1E-8FCA-14BC39E7459E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
