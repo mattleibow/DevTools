@@ -1,16 +1,22 @@
 
+using Microsoft.AspNetCore.Mvc.Rendering;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
-var insights = builder.AddAzureApplicationInsights("app-insights");
+var insights = builder.ExecutionContext.IsPublishMode
+    ? builder.AddAzureApplicationInsights("app-insights")
+    : null;
 
-//var openai = !builder.ExecutionContext.IsPublishMode
-//    ? builder.AddConnectionString("openai") // use external
-//    : builder.AddAzureOpenAI("openai") // deploy with app
-//        .AddDeployment(new("openai-model", "gpt-4o-mini", "2024-07-18"));
-
-var openai = builder.AddConnectionString("openai");
-
-//var openai = builder.AddAzureOpenAI("openai");
+// use the Azure OpenAI in the published app,
+// but a local Ollama in development
+IResourceBuilder<IResourceWithConnectionString> ai = builder.ExecutionContext.IsPublishMode
+    ? builder.AddAzureOpenAI("openai")
+        .AddDeployment(new("ai-model", "gpt-4o-mini", "2024-07-18", "Global Standard"))
+    : builder.AddOllama("ollama")
+        .WithDataVolume()
+        .WithContainerRuntimeArgs("--gpus=all")
+        .WithOpenWebUI()
+        .AddModel("llama3");
 
 var funcStorage = builder.AddAzureStorage("func-storage")
     .RunAsEmulator();
@@ -19,7 +25,8 @@ var func = builder
     .AddAzureFunctionsProject<Projects.LabeledByAI>("labeled-by-ai")
     .WithExternalHttpEndpoints()
     .WithHostStorage(funcStorage)
-    .WithReference(openai)
-    .WithReference(insights);
+    .WithReference(ai);
+if (insights is not null)
+    func.WithReference(insights);
 
 builder.Build().Run();

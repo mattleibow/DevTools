@@ -10,7 +10,7 @@ builder.AddServiceDefaults();
 
 builder.AddAzureOpenAIClient("openai");
 builder.Services.AddSingleton<IChatClient>(static (provider) =>
-    provider.GetRequiredService<OpenAIClient>().AsChatClient("gpt-4o-mini"));
+    provider.GetRequiredService<OpenAIClient>().AsChatClient("ai-model"));
 
 builder.ConfigureFunctionsWebApplication();
 
