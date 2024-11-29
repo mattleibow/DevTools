@@ -27,6 +27,7 @@ public class AIChatClient(IChatClient chatClient, ILogger<AIChatClient> logger)
         var options = new ChatOptions
         {
             MaxOutputTokens = 1000,
+            ResponseFormat = ChatResponseFormat.Json
         };
         var response = await chatClient.CompleteAsync(messages, options);
 

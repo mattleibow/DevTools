@@ -12,9 +12,13 @@ builder.Services.AddSingleton<GitHubBestLabelAIChatClient>();
 
 builder.AddServiceDefaults();
 
-builder.AddAzureOpenAIClient("openai");
+#if USE_LOCAL_AI
+builder.AddOllamaSharpChatClient("ai-model");
+#else
+builder.AddAzureOpenAIClient("ai");
 builder.Services.AddSingleton<IChatClient>(static (provider) =>
     provider.GetRequiredService<OpenAIClient>().AsChatClient("ai-model"));
+#endif
 
 builder.ConfigureFunctionsWebApplication();
 
