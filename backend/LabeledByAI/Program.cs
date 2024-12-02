@@ -7,8 +7,7 @@ using OpenAI;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<AIChatClient>();
-builder.Services.AddSingleton<GitHubBestLabelAIChatClient>();
+builder.Services.AddSingleton<GetBestLabelService>();
 
 builder.AddServiceDefaults();
 

@@ -3,11 +3,11 @@ using Microsoft.Extensions.Logging;
 
 namespace LabeledByAI.Services;
 
-public class AIChatClient(IChatClient chatClient, ILogger<AIChatClient> logger)
+public static partial class ChatClientExtensions
 {
-    public async Task<string> QueryAIAsync(string systemPrompt, string assistantPrompt)
+    public static async Task<string?> CompleteJsonAsync(this IChatClient chatClient, string systemPrompt, string assistantPrompt, ILogger? logger = null)
     {
-        logger.LogInformation("Generating OpenAI request...");
+        logger?.LogInformation("Generating OpenAI request...");
 
         IList<ChatMessage> messages =
         [
@@ -15,14 +15,15 @@ public class AIChatClient(IChatClient chatClient, ILogger<AIChatClient> logger)
             new(ChatRole.Assistant, assistantPrompt),
         ];
 
-        logger.LogInformation(
-            $"""
+        logger?.LogInformation(
+            """
             messages >>>
-            {string.Join(Environment.NewLine, messages.Select(m => $"{m.Role} => {m.Text}"))}
+            {messages}
             <<< messages
-            """);
+            """,
+            string.Join(Environment.NewLine, messages.Select(m => $"{m.Role} => {m.Text}")));
 
-        logger.LogInformation("Sending a request to OpenAI...");
+        logger?.LogInformation("Sending a request to OpenAI...");
 
         var options = new ChatOptions
         {
@@ -31,14 +32,15 @@ public class AIChatClient(IChatClient chatClient, ILogger<AIChatClient> logger)
         };
         var response = await chatClient.CompleteAsync(messages, options);
 
-        logger.LogInformation("OpenAI has replied.");
+        logger?.LogInformation("OpenAI has replied.");
 
-        logger.LogInformation(
-            $"""
+        logger?.LogInformation(
+            """
             response >>>
             {response}
             <<< response
-            """);
+            """,
+            response);
 
         var responseJson = response.ToString();
 
