@@ -1,6 +1,11 @@
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+// Only use Application Insights in the published app.
+var insights = builder.ExecutionContext.IsPublishMode
+    ? builder.AddAzureApplicationInsights("app-insights")
+    : null;
+
 // Use the Azure OpenAI in the published app, but a local Ollama
 // in development or connect to an existing Azure OpenAI.
 IResourceBuilder<IResourceWithConnectionString> ai =
@@ -16,11 +21,6 @@ IResourceBuilder<IResourceWithConnectionString> ai =
 #else
         : builder.AddConnectionString("ai");
 #endif
-
-// Only use Application Insights in the published app.
-var insights = builder.ExecutionContext.IsPublishMode
-    ? builder.AddAzureApplicationInsights("app-insights")
-    : null;
 
 // Specify the storage for the function.
 var funcStorage = builder.AddAzureStorage("func-storage")
