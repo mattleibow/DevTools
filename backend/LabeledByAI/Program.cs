@@ -7,12 +7,11 @@ using OpenAI;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<AIChatClient>();
-builder.Services.AddSingleton<GitHubBestLabelAIChatClient>();
+builder.Services.AddSingleton<GetBestLabelService>();
 
 builder.AddServiceDefaults();
 
-builder.AddAzureOpenAIClient("openai");
+builder.AddAzureOpenAIClient("ai");
 builder.Services.AddSingleton<IChatClient>(static (provider) =>
     provider.GetRequiredService<OpenAIClient>().AsChatClient("ai-model"));
 
