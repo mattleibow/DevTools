@@ -99,7 +99,7 @@ runs:
           }
         }
 
-        $hostAddress = "https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io"
+        $hostAddress = "https://labeled-by-ai.braveisland-12c152b6.southafricanorth.azurecontainerapps.io"
         $uri = "$hostAddress/api/label"
         $headers = @{
           'X-GitHub-Token' = "$env:GH_TOKEN"
