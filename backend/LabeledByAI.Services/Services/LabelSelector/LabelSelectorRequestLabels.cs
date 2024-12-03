@@ -1,5 +1,5 @@
 ﻿namespace LabeledByAI.Services;
 
-public record GetBestLabelRequestLabels(
+public record LabelSelectorRequestLabels(
     string[]? Names,
     string? Pattern);

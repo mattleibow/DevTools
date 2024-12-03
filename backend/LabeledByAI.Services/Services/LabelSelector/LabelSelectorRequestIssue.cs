@@ -1,6 +1,6 @@
 ﻿namespace LabeledByAI.Services;
 
-public record GetBestLabelRequestIssue(
+public record LabelSelectorRequestIssue(
     string Owner,
     string Repo,
     int Number);
