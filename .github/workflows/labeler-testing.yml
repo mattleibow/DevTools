@@ -5,6 +5,7 @@ on:
     branches: 
       - dev/workflow/testing
       - dev/action/label-with-ai
+      - action/label-with-ai
 
 jobs:
   test-workflow:
