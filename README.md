@@ -6,23 +6,21 @@ repository easier.
 
 There are a few things so far:
 
-* Main Azure backend on the `main` branch:
-  * Azure Functions:
-    * `/api/label`
-    * `/api/engagement-score`
+* Main Azure backend on the `main` branch
 * Github Actions on the `action/*` branches:
-  * [`action/label-with-ai`](https://github.com/mattleibow/dev-tools/tree/action/label-with-ai)  
-    Issue labeller which applies one label from a set of
-    labels to issues based on the title and description.
-  * [`action/engagement`](https://github.com/mattleibow/dev-tools/tree/action/engagement)  
-    Project updater which updates a specifric column in
-    a specific project with a calculated engagement score
-    to help prioritize and/or raise awareness of hot
-    issues.
+  * [`action/label-with-ai`](#ai-issue-labeler)  
+  * [`action/engagement`](#engagement-score)  
 
 ## Actions
 
 ### AI Issue Labeler
+
+Issue labeller which applies one label from a set of
+labels to issues based on the title and description.
+
+See the [`action/label-with-ai`](https://github.com/mattleibow/dev-tools/tree/action/label-with-ai) branch.
+
+#### Example Labeler Workflow
 
 ```yml
 name: Apply labels using AI
@@ -49,5 +47,16 @@ jobs:
 ```
 
 ### Engagement Score
+
+Project updater which updates a specifric column in
+a specific project with a calculated engagement score
+to help prioritize and/or raise awareness of hot
+issues.
+
+See the [`action/engagement`](https://github.com/mattleibow/dev-tools/tree/action/engagement) branch.
+
+TODO
+
+#### Example Engagement Workflow
 
 TODO
