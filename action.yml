@@ -59,7 +59,7 @@ runs:
           exit 1
         }
         
-        Write-Output "Issue Number: " + $env:ISSUE_NUMBER
+        Write-Output "Issue Number: $($env:ISSUE_NUMBER)"
 
         Write-Output "Labels:"
         if ($env:LABEL_NAMES) {
