@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace LabeledByAI.Services;
 
@@ -21,6 +22,7 @@ public static class JsonExtensions
             PropertyNameCaseInsensitive = true,
             IgnoreReadOnlyFields = true,
             IgnoreReadOnlyProperties = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
         };
 }

@@ -9,7 +9,7 @@ X-GitHub-Token: {{GitHubToken}}
   "issue": {
     "owner": "mattleibow",
     "repo": "labeled-by-ai",
-    "number": 13
+    "number": "13"
   },
   "labels": {
     "names": [
