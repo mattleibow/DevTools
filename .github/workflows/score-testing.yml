@@ -11,3 +11,4 @@ jobs:
         with:
           project: 4
           column: 'Engagement Score'
+          project-token: ${{ secrets.PROJECT_ACCESS_TOKEN }}
