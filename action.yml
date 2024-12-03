@@ -8,6 +8,9 @@ inputs:
   column:
     description: 'The column to update the scores in.'
     default: 'Engagement Score'
+  project-token:
+    description: 'The GitHub token to use when updating the project.'
+    required: true
 
 runs:
   using: "composite"
@@ -16,9 +19,10 @@ runs:
     - name: Update the engagement scores
       shell: pwsh
       env:
-        GH_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ github.token }}
         GH_PROJECT: ${{ inputs.project }}
         GH_COLUMN: ${{ inputs.column }}
+        GH_TOKEN: ${{ inputs.project-token }}
       run: |
         "Calculating the engagement scores.."
 
@@ -34,36 +38,38 @@ runs:
         Write-Output "JSON Body:"
         Write-Output $body
 
-        $hostAddress = "https://labeled-by-ai.braveisland-12c152b6.southafricanorth.azurecontainerapps.io"
-        $uri = "$hostAddress/api/engagement-score"
-        $headers = @{
-          'X-GitHub-Token' = "$env:GH_TOKEN"
-        }
-        $response = Invoke-RestMethod `
-          -Method Post `
-          -Uri $uri `
-          -Body $body `
-          -ContentType 'application/json' `
-          -Headers $headers `
-          -StatusCodeVariable responseStatusCode
+        # $hostAddress = "https://labeled-by-ai.braveisland-12c152b6.southafricanorth.azurecontainerapps.io"
+        # $uri = "$hostAddress/api/engagement-score"
+        # $headers = @{
+        #   'X-GitHub-Token' = "$env:GITHUB_TOKEN"
+        # }
+        # $response = Invoke-RestMethod `
+        #   -Method Post `
+        #   -Uri $uri `
+        #   -Body $body `
+        #   -ContentType 'application/json' `
+        #   -Headers $headers `
+        #   -StatusCodeVariable responseStatusCode
 
-        Write-Output "The server replied with a status code of: $responseStatusCode"
+        # Write-Output "The server replied with a status code of: $responseStatusCode"
 
-        if (-not $response) {
-          Write-Error "Failed to get a response from the server."
-          Write-Output "::endgroup::"
-          exit 1
-        }
+        # if (-not $response) {
+        #   Write-Error "Failed to get a response from the server."
+        #   Write-Output "::endgroup::"
+        #   exit 1
+        # }
 
-        if ($response.Count -eq 0) {
-          Write-Warning "No open issues were found."
-          Write-Output "::endgroup::"
-          exit 0
-        }
+        # if ($response.Count -eq 0) {
+        #   Write-Warning "No open issues were found."
+        #   Write-Output "::endgroup::"
+        #   exit 0
+        # }
 
         Write-Output "::endgroup::"
 
         Write-Output "::group::Updating the scores in the project..."
+
+
 
         Write-Output "Loading the project using the specified project number $($env:GH_PROJECT)..."
         gh project list --format json
