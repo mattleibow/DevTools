@@ -96,18 +96,18 @@ runs:
         Write-Output "Field ID: $fieldId"
         Write-Output "Field Name: $fieldName"
 
-        foreach ($issue in $response) {
-          $issueId = $issue.id
-          $issueNumber = $issue.number
-          $issueScore = $issue.score
+        foreach ($item in $response) {
+          $issueId = $item.issue.id
+          $issueNumber = $item.issue.number
+          $engagementScore = $item.engagement.score
 
-          Write-Output "Updating the score of issue #$issueNumber to $issueScore.."
+          Write-Output "Updating the score of issue #$issueNumber to $engagementScore.."
 
           gh project item-edit `
             --id "$issueId" `
             --project-id "$projectId" `
             --field-id "$fieldId" `
-            --number "$issueScore"
+            --number "$engagementScore"
         }
 
         Write-Output "::endgroup::"
