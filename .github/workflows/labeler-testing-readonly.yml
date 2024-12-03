@@ -3,7 +3,9 @@ name: Local Testing Workflow (Read Only)
 on:
   push:
     branches: 
+      - main
       - action/label-with-ai
+      - dev/action/label-with-ai
 
 jobs:
   test-workflow:
