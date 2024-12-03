@@ -12,6 +12,12 @@ public class EngagementService(ILogger<EngagementService> logger)
         //   - issues touched in the last [7] days
         //   - download linked PRs
         //   - merge duplicated issues
+        // OPTIONS:
+        // - calc all issues
+        // - calc only one issue
+        // - calc all issues in the last [7/10/30] days
+        // - calc all issues in a project
+        // - calc all issues in a project in the last [7/10/30] days
 
         var reqIssue = request.Issue;
 
@@ -22,15 +28,18 @@ public class EngagementService(ILogger<EngagementService> logger)
         IList<GitHubIssue> issues;
         if (reqIssue.Number is int number)
         {
+            // load the single issue
             logger.LogInformation("Loading the issue details...");
+
             var issue = await repo.GetIssueDetailedAsync(number);
             issues = [issue];
         }
         else
         {
-            // TODO: download all issues and process them
+            // load all the isses
+            logger.LogInformation("Loading all the issue details...");
 
-            issues = [];
+            issues = await repo.GetAllIssuesDetailedAsync();
         }
 
         if (!IsValidRequest(issues, out var errorResult))

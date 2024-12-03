@@ -1,4 +1,5 @@
 ﻿using Octokit.GraphQL;
+using Octokit.GraphQL.Model;
 using System.Text.RegularExpressions;
 
 namespace LabeledByAI.Services;
@@ -41,6 +42,34 @@ public class GitHubRepository(Connection connection, string owner, string repo)
         }
 
         return issue;
+    }
+
+    public async Task<IList<GitHubIssue>> GetAllIssuesAsync(bool includeClosed = false)
+    {
+        var issues = await FetchAllIssuesAsync(includeClosed);
+
+        foreach (var issue in issues)
+        {
+            _allIssues[issue.Number] = issue;
+        }
+
+        return issues;
+    }
+
+    public async Task<IList<GitHubIssue>> GetAllIssuesDetailedAsync(bool includeClosed = false)
+    {
+        var issues = await GetAllIssuesAsync(includeClosed);
+
+        foreach (var issue in issues)
+        {
+            if (issue.Comments is null)
+            {
+                var comments = await FetchIssueCommentsAsync(issue.Number);
+                issue.Comments = comments;
+            }
+        }
+
+        return issues;
     }
 
     private async Task<List<GitHubComment>> FetchIssueCommentsAsync(int number)
@@ -116,6 +145,40 @@ public class GitHubRepository(Connection connection, string owner, string repo)
         var issue = await connection.Run(query);
 
         return issue;
+    }
+
+    private async Task<List<GitHubIssue>> FetchAllIssuesAsync(bool includeClosed)
+    {
+        IssueState[] issueStates = includeClosed
+            ? [IssueState.Open, IssueState.Closed]
+            : [IssueState.Open];
+
+        var query = new Query()
+            .Repository(owner: owner, name: repo)
+            .Issues(states: issueStates)
+            .AllPages()
+            .Select(i => new GitHubIssue(
+                i.Id.ToString(),
+                i.Number,
+                i.Author.Login,
+                i.Title,
+                i.Body,
+                i.Comments(null, null, null, null, null)
+                    .TotalCount,
+                i.Reactions(null, null, null, null, null, null)
+                    .TotalCount,
+                i.UpdatedAt,
+                i.CreatedAt,
+                i.Labels(null, null, null, null, null)
+                    .AllPages()
+                    .Select(l => l.Name)
+                    .ToList()
+            ))
+            .Compile();
+
+        var issues = await connection.Run(query);
+
+        return issues.ToList();
     }
 
     private List<GitHubLabel> GetFilteredLabels(GitHubLabelFilter filter)

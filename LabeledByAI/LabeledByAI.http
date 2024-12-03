@@ -85,3 +85,17 @@ X-GitHub-Token: {{GitHubToken}}
 }
 
 ###
+
+POST {{HostAddress}}/api/engagement-score
+Content-Type: application/json
+X-GitHub-Token: {{GitHubToken}}
+
+{
+  "version": 1,
+  "issue": {
+    "owner": "mattleibow",
+    "repo": "labeled-by-ai"
+  }
+}
+
+###
