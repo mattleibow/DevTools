@@ -51,7 +51,8 @@ public class EngagementService(ILogger<EngagementService> logger)
             var score = CalculateScore(issue);
 
             var item = new EngagementResponse(
-                new(issue.Number),
+                new(issue.Id,
+                    issue.Number),
                 new(score));
 
             items.Add(item);
