@@ -66,6 +66,7 @@ runs:
         Write-Output "::group::Updating the scores in the project..."
 
         Write-Output "Loading the project using the specified project number $($env:GH_PROJECT)..."
+        gh project list --format json
         $project = gh project list `
             --format json `
             --owner "${{ github.event.repository.owner.login }}" |
