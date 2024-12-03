@@ -1,11 +1,8 @@
-name: Local Testing Workflow (Writeable)
+name: Labeler Testing Workflow
 
 on:
-  push:
-    branches: 
-      - main
-      - action/label-with-ai
-      - dev/action/label-with-ai
+  issue_comment: 
+    types: [created]
 
 jobs:
   test-workflow:
@@ -13,19 +10,6 @@ jobs:
     permissions:
       issues: write
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v2
-      - name: Read the test issue json
-        shell: pwsh
-        id: loader
-        run: |
-          $issue = Get-Content ".github/workflows/test-data/test-issue.json"
-          $issue = $issue | Join-String -Separator " "
-          "GITHUB_ISSUE=$issue" >> $env:GITHUB_OUTPUT
-      - uses: mattleibow/dev-tools@action/label-with-ai
+      - uses: mattleibow/dev-tools@dev/action/label-with-ai
         with:
-          labels: |
-            area/action
-            area/ai
-            area/function
-          issue-json: ${{ steps.loader.outputs.GITHUB_ISSUE }} # testing pipeline only
+          label-pattern: '^area/.*'
