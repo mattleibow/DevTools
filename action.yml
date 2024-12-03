@@ -91,6 +91,9 @@ runs:
           }
         }
 
+        Write-Output "JSON Body:"
+        Write-Output $body
+
         $hostAddress = "https://labeled-by-ai.braveisland-12c152b6.southafricanorth.azurecontainerapps.io"
         $uri = "$hostAddress/api/label"
         $headers = @{
