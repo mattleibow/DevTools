@@ -3,8 +3,8 @@ name: Local Testing Workflow (Read Only)
 on:
   push:
     branches: 
-      - dev/workflow-testing
-      - dev/action-testing
+      - dev/workflow/testing
+      - dev/action/label-with-ai
 
 jobs:
   test-workflow:
@@ -19,7 +19,7 @@ jobs:
           $issue = Get-Content ".github/workflows/test-data/test-issue.json"
           $issue = $issue | Join-String -Separator " "
           "GITHUB_ISSUE=$issue" >> $env:GITHUB_OUTPUT
-      - uses: mattleibow/labeled-by-ai@dev/action-testing
+      - uses: mattleibow/dev-tools@dev/action/label-with-ai
         with:
           label-pattern: '^area/.*'
           issue-json: ${{ steps.loader.outputs.GITHUB_ISSUE }} # testing pipeline only
