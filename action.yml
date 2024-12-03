@@ -38,41 +38,38 @@ runs:
         Write-Output "JSON Body:"
         Write-Output $body
 
-        # $hostAddress = "https://labeled-by-ai.braveisland-12c152b6.southafricanorth.azurecontainerapps.io"
-        # $uri = "$hostAddress/api/engagement-score"
-        # $headers = @{
-        #   'X-GitHub-Token' = "$env:GITHUB_TOKEN"
-        # }
-        # $response = Invoke-RestMethod `
-        #   -Method Post `
-        #   -Uri $uri `
-        #   -Body $body `
-        #   -ContentType 'application/json' `
-        #   -Headers $headers `
-        #   -StatusCodeVariable responseStatusCode
+        $hostAddress = "https://labeled-by-ai.braveisland-12c152b6.southafricanorth.azurecontainerapps.io"
+        $uri = "$hostAddress/api/engagement-score"
+        $headers = @{
+          'X-GitHub-Token' = "$env:GITHUB_TOKEN"
+        }
+        $response = Invoke-RestMethod `
+          -Method Post `
+          -Uri $uri `
+          -Body $body `
+          -ContentType 'application/json' `
+          -Headers $headers `
+          -StatusCodeVariable responseStatusCode
 
-        # Write-Output "The server replied with a status code of: $responseStatusCode"
+        Write-Output "The server replied with a status code of: $responseStatusCode"
 
-        # if (-not $response) {
-        #   Write-Error "Failed to get a response from the server."
-        #   Write-Output "::endgroup::"
-        #   exit 1
-        # }
+        if (-not $response) {
+          Write-Error "Failed to get a response from the server."
+          Write-Output "::endgroup::"
+          exit 1
+        }
 
-        # if ($response.Count -eq 0) {
-        #   Write-Warning "No open issues were found."
-        #   Write-Output "::endgroup::"
-        #   exit 0
-        # }
+        if ($response.Count -eq 0) {
+          Write-Warning "No open issues were found."
+          Write-Output "::endgroup::"
+          exit 0
+        }
 
         Write-Output "::endgroup::"
 
         Write-Output "::group::Updating the scores in the project..."
 
-
-
-        Write-Output "Loading the project using the specified project number $($env:GH_PROJECT)..."
-        gh project list --format json
+        Write-Output "Loading the project using the specified project number '$($env:GH_PROJECT)'..."
         $project = gh project list `
             --format json `
             --owner "${{ github.event.repository.owner.login }}" |
@@ -86,7 +83,7 @@ runs:
         Write-Output "Project Number: $projectNumber"
         Write-Output "Project Title: $projectTitle"
 
-        Write-Output "Loading the project field using the specified column name $($env:GH_COLUMN)..."
+        Write-Output "Loading the project field using the specified column name '$($env:GH_COLUMN)'..."
         $field = gh project field-list `
             $projectNumber `
             --format json `
