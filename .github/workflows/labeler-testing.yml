@@ -6,6 +6,7 @@ on:
 
 jobs:
   test-workflow:
+    if: startsWith(github.event.comment.body, '/label')
     runs-on: ubuntu-latest
     permissions:
       issues: write
