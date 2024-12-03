@@ -1,0 +1,13 @@
+name: Engagement Scorer Testing Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mattleibow/dev-tools@dev/action/engagement
+        with:
+          project: 4
+          column: 'Engagement Score'
