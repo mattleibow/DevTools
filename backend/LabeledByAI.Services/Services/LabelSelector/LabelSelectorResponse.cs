@@ -1,5 +1,5 @@
 ﻿namespace LabeledByAI.Services;
 
-public record GetBestLabelResponse(
+public record LabelSelectorResponse(
     string Label,
     string Reason);

@@ -5,9 +5,9 @@ using System.Text;
 
 namespace LabeledByAI.Services;
 
-public class GetBestLabelService(IChatClient chatClient, ILogger<GetBestLabelService> logger)
+public class LabelSelectorService(IChatClient chatClient, ILogger<LabelSelectorService> logger)
 {
-    public async Task<GetBestLabelResponse> ExecuteAsync(GetBestLabelRequest request, string githubToken)
+    public async Task<LabelSelectorResponse> SelectLabelAsync(LabelSelectorRequest request, string githubToken)
     {
         var reqIssue = request.Issue;
         var reqLabels = request.Labels;
@@ -62,14 +62,14 @@ public class GetBestLabelService(IChatClient chatClient, ILogger<GetBestLabelSer
     private bool IsValidResponse(
         [NotNullWhen(true)] GitHubIssue? issue,
         [NotNullWhen(true)] IList<GitHubLabel>? labels,
-        [NotNullWhen(true)] GetBestLabelResponse? response,
+        [NotNullWhen(true)] LabelSelectorResponse? response,
         [NotNullWhen(false)] out string? errorResult)
     {
         errorResult = null;
         return true;
     }
 
-    public async Task<GetBestLabelResponse?> GetBestLabelAsync(GitHubIssue issue, IList<GitHubLabel> availableLabels)
+    public async Task<LabelSelectorResponse?> GetBestLabelAsync(GitHubIssue issue, IList<GitHubLabel> availableLabels)
     {
         logger?.LogInformation("Generating OpenAI request...");
 
@@ -78,7 +78,7 @@ public class GetBestLabelService(IChatClient chatClient, ILogger<GetBestLabelSer
 
         var responseJson = await chatClient.CompleteJsonAsync(systemPrompt, assistantPrompt, logger);
 
-        var response = responseJson.Deserialize<GetBestLabelResponse>();
+        var response = responseJson.Deserialize<LabelSelectorResponse>();
 
         return response;
     }
