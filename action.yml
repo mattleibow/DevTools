@@ -11,6 +11,9 @@ inputs:
   project-token:
     description: 'The GitHub token to use when updating the project.'
     required: true
+  update-project:
+    default: 'true'
+    description: 'Whether or not to update the project items with the score.'
 
 runs:
   using: "composite"
@@ -20,9 +23,10 @@ runs:
       shell: pwsh
       env:
         GITHUB_TOKEN: ${{ github.token }}
-        GH_PROJECT: ${{ inputs.project }}
-        GH_COLUMN: ${{ inputs.column }}
         GH_TOKEN: ${{ inputs.project-token }}
+        PROJECT_NUMBER: ${{ inputs.project }}
+        PROJECT_FIELD_NAME: ${{ inputs.column }}
+        UPDATE_PROJECT: ${{ inputs.update-project }}
       run: |
         "Calculating the engagement scores.."
 
@@ -69,8 +73,8 @@ runs:
 
         Write-Output "::group::Updating the scores in the project..."
 
-        Write-Output "Loading the project using the specified project number '$($env:GH_PROJECT)'..."
-        $project = gh project view "$env:GH_PROJECT" `
+        Write-Output "Loading the project using the specified project number '$($env:PROJECT_NUMBER)'..."
+        $project = gh project view "$env:PROJECT_NUMBER" `
             --owner "${{ github.event.repository.owner.login }}"
             --format json |
           ConvertFrom-Json
@@ -81,14 +85,14 @@ runs:
         Write-Output "Project Number: $projectNumber"
         Write-Output "Project Title: $projectTitle"
 
-        Write-Output "Loading the project field using the specified column name '$($env:GH_COLUMN)'..."
+        Write-Output "Loading the project field using the specified column name '$($env:PROJECT_FIELD_NAME)'..."
         $field = gh project field-list `
             $projectNumber `
             --owner "${{ github.event.repository.owner.login }}" ``
             --format json |
           ConvertFrom-Json |
           Select-Object -ExpandProperty fields |
-          Where-Object { $_.name -eq "$env:GH_COLUMN" }
+          Where-Object { $_.name -eq "$env:PROJECT_FIELD_NAME" }
         $fieldId = $field.id
         $fieldName = $field.name
         Write-Output "Field ID: $fieldId"
@@ -117,11 +121,13 @@ runs:
 
           Write-Output "Updating the score of issue #$issueNumber to $engagementScore.."
 
+          if ($env:UPDATE_PROJECT -eq 'true') {
           gh project item-edit `
             --id "$itemId" `
             --project-id "$projectId" `
             --field-id "$fieldId" `
             --number "$engagementScore"
+        }
         }
 
         Write-Output "::endgroup::"
