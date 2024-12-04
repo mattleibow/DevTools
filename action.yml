@@ -70,12 +70,10 @@ runs:
         Write-Output "::group::Updating the scores in the project..."
 
         Write-Output "Loading the project using the specified project number '$($env:GH_PROJECT)'..."
-        $project = gh project list `
-            --format json `
-            --owner "${{ github.event.repository.owner.login }}" |
-          ConvertFrom-Json |
-          Select-Object -ExpandProperty projects |
-          Where-Object { $_.number -eq "$env:GH_PROJECT" }
+        $project = gh project view "$env:GH_PROJECT" `
+            --owner "${{ github.event.repository.owner.login }}"
+            --format json |
+          ConvertFrom-Json
         $projectId = $project.id
         $projectNumber = $project.number
         $projectTitle = $project.title
@@ -86,8 +84,8 @@ runs:
         Write-Output "Loading the project field using the specified column name '$($env:GH_COLUMN)'..."
         $field = gh project field-list `
             $projectNumber `
-            --format json `
-            --owner "${{ github.event.repository.owner.login }}" |
+            --owner "${{ github.event.repository.owner.login }}" ``
+            --format json |
           ConvertFrom-Json |
           Select-Object -ExpandProperty fields |
           Where-Object { $_.name -eq "$env:GH_COLUMN" }
@@ -96,15 +94,31 @@ runs:
         Write-Output "Field ID: $fieldId"
         Write-Output "Field Name: $fieldName"
 
+        Write-Output "Loading all the items in the project..."
+        $items = gh project item-list `
+            $projectNumber `
+            --owner "${{ github.event.repository.owner.login }}" `
+            --limit 1000000 `
+            --format json |
+          ConvertFrom-Json |
+          Select-Object -ExpandProperty items
+        Write-Output "Found $($items.Count) items in the project."
+
+        Write-Output "Updating the scores in the project..."
         foreach ($item in $response) {
-          $issueId = $item.issue.id
+          $repository = "${{ github.event.repository.owner.login }}/${{ github.event.repository.name }}"
+          $projectItem = $items |
+            Where-Object { $_.content.number -eq $item.issue.number -and $_.content.repository -eq $repository } |
+            Select-Object -ExpandProperty id
+
+          $itemId = $projectItem.id
           $issueNumber = $item.issue.number
           $engagementScore = $item.engagement.score
 
           Write-Output "Updating the score of issue #$issueNumber to $engagementScore.."
 
           gh project item-edit `
-            --id "$issueId" `
+            --id "$itemId" `
             --project-id "$projectId" `
             --field-id "$fieldId" `
             --number "$engagementScore"
