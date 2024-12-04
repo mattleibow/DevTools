@@ -117,8 +117,7 @@ runs:
             Where-Object { 
               $_.content.number -eq $item.issue.number -and 
               $_.content.repository -eq $repository 
-            } |
-            Select-Object -ExpandProperty id
+            }
 
           $itemId = $projectItem.id
           $issueNumber = $item.issue.number
