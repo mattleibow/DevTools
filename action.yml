@@ -24,6 +24,8 @@ runs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
         GH_TOKEN: ${{ inputs.project-token }}
+        PROJECT_OWNER: ${{ github.event.repository.owner.login }}
+        PROJECT_REPO: ${{ github.event.repository.name }}
         PROJECT_NUMBER: ${{ inputs.project }}
         PROJECT_FIELD_NAME: ${{ inputs.column }}
         UPDATE_PROJECT: ${{ inputs.update-project }}
@@ -34,8 +36,8 @@ runs:
         $body = ConvertTo-Json -InputObject @{
           version = 1
           issue = @{
-            owner = "${{ github.event.repository.owner.login }}"
-            repo = "${{ github.event.repository.name }}"
+            owner = "$env:PROJECT_OWNER"
+            repo = "$env:PROJECT_REPO"
           }
         }
 
@@ -75,7 +77,7 @@ runs:
 
         Write-Output "Loading the project using the specified project number '$($env:PROJECT_NUMBER)'..."
         $project = gh project view "$env:PROJECT_NUMBER" `
-            --owner "${{ github.event.repository.owner.login }}"
+            --owner "$env:PROJECT_OWNER" `
             --format json |
           ConvertFrom-Json
         $projectId = $project.id
@@ -88,7 +90,7 @@ runs:
         Write-Output "Loading the project field using the specified column name '$($env:PROJECT_FIELD_NAME)'..."
         $field = gh project field-list `
             $projectNumber `
-            --owner "${{ github.event.repository.owner.login }}" ``
+            --owner "$env:PROJECT_OWNER" `
             --format json |
           ConvertFrom-Json |
           Select-Object -ExpandProperty fields |
@@ -101,7 +103,7 @@ runs:
         Write-Output "Loading all the items in the project..."
         $items = gh project item-list `
             $projectNumber `
-            --owner "${{ github.event.repository.owner.login }}" `
+            --owner "$env:PROJECT_OWNER" `
             --limit 1000000 `
             --format json |
           ConvertFrom-Json |
@@ -110,24 +112,27 @@ runs:
 
         Write-Output "Updating the scores in the project..."
         foreach ($item in $response) {
-          $repository = "${{ github.event.repository.owner.login }}/${{ github.event.repository.name }}"
+          $repository = "$env:PROJECT_OWNER/$env:PROJECT_REPO"
           $projectItem = $items |
-            Where-Object { $_.content.number -eq $item.issue.number -and $_.content.repository -eq $repository } |
+            Where-Object { 
+              $_.content.number -eq $item.issue.number -and 
+              $_.content.repository -eq $repository 
+            } |
             Select-Object -ExpandProperty id
 
           $itemId = $projectItem.id
           $issueNumber = $item.issue.number
           $engagementScore = $item.engagement.score
 
-          Write-Output "Updating the score of issue #$issueNumber to $engagementScore.."
+          Write-Output "Updating the score of issue $repository#$issueNumber to $engagementScore.."
 
           if ($env:UPDATE_PROJECT -eq 'true') {
-          gh project item-edit `
-            --id "$itemId" `
-            --project-id "$projectId" `
-            --field-id "$fieldId" `
-            --number "$engagementScore"
-        }
+            gh project item-edit `
+              --id "$itemId" `
+              --project-id "$projectId" `
+              --field-id "$fieldId" `
+              --number "$engagementScore"
+          }
         }
 
         Write-Output "::endgroup::"
