@@ -11,11 +11,13 @@ public class GitHub(Connection connection)
     {
     }
 
+    public Connection Connection { get; } = connection;
+
     public GitHubRepository GetRepository(string owner, string repo)
     {
         if (!_repositories.TryGetValue((owner, repo), out var instance))
         {
-            instance = new GitHubRepository(connection, owner, repo);
+            instance = new GitHubRepository(this, owner, repo);
             _repositories[(owner, repo)] = instance;
         }
 
