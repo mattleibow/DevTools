@@ -4,7 +4,10 @@ namespace LabeledByAI.Services;
 
 public record GitHubIssue(
     string Id,
+    string Owner,
+    string Repository,
     int Number,
+    bool IsOpen,
     string Author,
     string Title,
     string Body,
