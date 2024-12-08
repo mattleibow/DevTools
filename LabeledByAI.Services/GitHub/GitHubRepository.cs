@@ -72,6 +72,16 @@ public class GitHubRepository(GitHub github, string owner, string repo)
         return issues;
     }
 
+    internal void CacheIssue(GitHubIssue issue)
+    {
+        if (_allIssues.TryGetValue(issue.Number, out var oldIssue))
+        {
+            issue.Comments ??= oldIssue.Comments;
+        }
+
+        _allIssues[issue.Number] = issue;
+    }
+
     private async Task<List<GitHubComment>> FetchIssueCommentsAsync(int number)
     {
         var query = new Query()
@@ -125,7 +135,10 @@ public class GitHubRepository(GitHub github, string owner, string repo)
             .Issue(number: number)
             .Select(i => new GitHubIssue(
                 i.Id.ToString(),
+                i.Repository.Owner.Login,
+                i.Repository.Name,
                 i.Number,
+                i.State == IssueState.Open,
                 i.Author.Login,
                 i.Title,
                 i.Body,
@@ -159,7 +172,10 @@ public class GitHubRepository(GitHub github, string owner, string repo)
             .AllPages()
             .Select(i => new GitHubIssue(
                 i.Id.ToString(),
+                i.Repository.Owner.Login,
+                i.Repository.Name,
                 i.Number,
+                i.State == IssueState.Open,
                 i.Author.Login,
                 i.Title,
                 i.Body,
