@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace LabeledByAI.Services;
 
-public class GitHubRepository(Connection connection, string owner, string repo)
+public class GitHubRepository(GitHub github, string owner, string repo)
 {
     private List<GitHubLabel>? _allLabels;
     private readonly Dictionary<int, GitHubIssue> _allIssues = [];
@@ -93,7 +93,7 @@ public class GitHubRepository(Connection connection, string owner, string repo)
             )
             .Compile();
 
-        var comments = await connection.Run(query);
+        var comments = await github.Connection.Run(query);
 
         return comments;
     }
@@ -113,7 +113,7 @@ public class GitHubRepository(Connection connection, string owner, string repo)
             ))
             .Compile();
 
-        var labels = await connection.Run(query);
+        var labels = await github.Connection.Run(query);
 
         return labels.ToList();
     }
@@ -142,7 +142,7 @@ public class GitHubRepository(Connection connection, string owner, string repo)
             ))
             .Compile();
 
-        var issue = await connection.Run(query);
+        var issue = await github.Connection.Run(query);
 
         return issue;
     }
@@ -176,7 +176,7 @@ public class GitHubRepository(Connection connection, string owner, string repo)
             ))
             .Compile();
 
-        var issues = await connection.Run(query);
+        var issues = await github.Connection.Run(query);
 
         return issues.ToList();
     }
