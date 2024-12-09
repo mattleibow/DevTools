@@ -2,4 +2,5 @@
 
 public record EngagementRequest(
     int Version,
-    EngagementRequestIssue Issue);
+    EngagementRequestIssue? Issue = null,
+    EngagementRequestProject? Project = null);
