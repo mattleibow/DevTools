@@ -22,8 +22,7 @@ runs:
     - name: Update the engagement scores
       shell: pwsh
       env:
-        GITHUB_TOKEN: ${{ github.token }}
-        GH_TOKEN: ${{ inputs.project-token }}
+        GITHUB_TOKEN: ${{ inputs.project-token }}
         PROJECT_OWNER: ${{ github.event.repository.owner.login }}
         PROJECT_REPO: ${{ github.event.repository.name }}
         PROJECT_NUMBER: ${{ inputs.project }}
