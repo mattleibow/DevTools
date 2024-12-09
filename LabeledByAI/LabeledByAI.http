@@ -99,3 +99,17 @@ X-GitHub-Token: {{GitHubToken}}
 }
 
 ###
+
+POST {{HostAddress}}/api/engagement-score
+Content-Type: application/json
+X-GitHub-Token: {{GitHubToken}}
+
+{
+  "version": 1,
+  "project": {
+    "owner": "mattleibow",
+    "number": "4"
+  }
+}
+
+###

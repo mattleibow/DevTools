@@ -2,4 +2,5 @@
 
 public record EngagementResponse(
     IList<EngagementResponseItem> Items,
-    int TotalItems);
+    int TotalItems,
+    EngagementResponseProject? Project = null);

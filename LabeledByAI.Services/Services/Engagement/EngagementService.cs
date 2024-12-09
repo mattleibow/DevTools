@@ -26,8 +26,13 @@ public class EngagementService(ILogger<EngagementService> logger)
             return await CalculateScoreAsync(reqIssue, github);
         }
 
-        logger.LogError("Request had no issue specified.");
-        throw new InvalidOperationException("Request had no issue specified.");
+        if (request.Project is { } reqProject)
+        {
+            return await CalculateScoreAsync(reqProject, github);
+        }
+
+        logger.LogError("Request had neither an issue or project.");
+        throw new InvalidOperationException("Request had neither an issue or project.");
     }
 
     private async Task<EngagementResponse> CalculateScoreAsync(EngagementRequestIssue reqIssue, GitHub github)
@@ -62,6 +67,7 @@ public class EngagementService(ILogger<EngagementService> logger)
             var score = CalculateScore(issue);
 
             var item = new EngagementResponseItem(
+                null,
                 new EngagementResponseIssue(
                     issue.Id,
                     reqIssue.Owner,
@@ -76,6 +82,57 @@ public class EngagementService(ILogger<EngagementService> logger)
         return new EngagementResponse(
             items,
             items.Count);
+    }
+
+    private async Task<EngagementResponse> CalculateScoreAsync(EngagementRequestProject reqProject, GitHub github)
+    {
+        // get github project
+        var project = github.GetProject(reqProject.Owner, reqProject.Number);
+
+        // load all the items
+        logger.LogInformation("Loading all the project details...");
+
+        var projectId = await project.GetProjectIdAsync();
+        var projectItems = await project.GetAllItemsDetailedAsync();
+
+        //if (!IsValidRequest(projectItems, out var errorResult))
+        //    throw new InvalidOperationException(errorResult);
+
+        // calculate the engagement score for each item
+        var items = new List<EngagementResponseItem>(projectItems.Count);
+        foreach (var projectItem in projectItems)
+        {
+            var (content, score) = projectItem.Content switch
+            {
+                GitHubIssue issue => (
+                    new EngagementResponseIssue(
+                        projectItem.Id,
+                        issue.Owner,
+                        issue.Repository,
+                        issue.Number),
+                    CalculateScore(issue)),
+                _ => (null, 0)
+            };
+
+            if (content is null)
+                continue;
+
+            var item = new EngagementResponseItem(
+                projectId,
+                content,
+                new EngagementResponseEngagement(
+                    score));
+
+            items.Add(item);
+        }
+
+        return new EngagementResponse(
+            items,
+            items.Count,
+            new EngagementResponseProject(
+                projectId,
+                reqProject.Owner,
+                reqProject.Number));
     }
 
     private bool IsValidRequest(
