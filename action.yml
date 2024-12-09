@@ -22,6 +22,7 @@ runs:
     - name: Update the engagement scores
       shell: pwsh
       env:
+        GH_TOKEN: ${{ inputs.project-token }}
         GITHUB_TOKEN: ${{ inputs.project-token }}
         PROJECT_OWNER: ${{ github.event.repository.owner.login }}
         PROJECT_REPO: ${{ github.event.repository.name }}
@@ -78,7 +79,7 @@ runs:
         $projectId = $response.project.id
         $projectNumber = $response.project.number
         $projectOwner = $response.project.owner
-        $projectUpdateCount = $response.project.totalItems
+        $projectUpdateCount = $response.totalItems
         Write-Output "Project ID: $projectId"
         Write-Output "Project Owner: $projectOwner"
         Write-Output "Project Number: $projectNumber"
