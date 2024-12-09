@@ -5,7 +5,7 @@ namespace LabeledByAI.Services;
 
 public class EngagementService(ILogger<EngagementService> logger)
 {
-    public async Task<IList<EngagementResponse>> CalculateScoresAsync(EngagementRequest request, string githubToken)
+    public async Task<EngagementResponse> CalculateScoresAsync(EngagementRequest request, string githubToken)
     {
         // TODO:
         // - download the github issue and all the comments and reactions
@@ -19,10 +19,20 @@ public class EngagementService(ILogger<EngagementService> logger)
         // - calc all issues in a project
         // - calc all issues in a project in the last [7/10/30] days
 
-        var reqIssue = request.Issue;
-
-        // get github repository
         var github = new GitHub(githubToken);
+
+        if (request.Issue is { } reqIssue)
+        {
+            return await CalculateScoreAsync(reqIssue, github);
+        }
+
+        logger.LogError("Request had no issue specified.");
+        throw new InvalidOperationException("Request had no issue specified.");
+    }
+
+    private async Task<EngagementResponse> CalculateScoreAsync(EngagementRequestIssue reqIssue, GitHub github)
+    {
+        // get github repository
         var repo = github.GetRepository(reqIssue.Owner, reqIssue.Repo);
 
         IList<GitHubIssue> issues;
@@ -45,20 +55,27 @@ public class EngagementService(ILogger<EngagementService> logger)
         if (!IsValidRequest(issues, out var errorResult))
             throw new InvalidOperationException(errorResult);
 
-        var items = new List<EngagementResponse>(issues.Count);
+        // calculate the engagement score for each issue
+        var items = new List<EngagementResponseItem>(issues.Count);
         foreach (var issue in issues)
         {
             var score = CalculateScore(issue);
 
-            var item = new EngagementResponse(
-                new(issue.Id,
+            var item = new EngagementResponseItem(
+                new EngagementResponseIssue(
+                    issue.Id,
+                    reqIssue.Owner,
+                    reqIssue.Repo,
                     issue.Number),
-                new(score));
+                new EngagementResponseEngagement(
+                    score));
 
             items.Add(item);
         }
 
-        return items;
+        return new EngagementResponse(
+            items,
+            items.Count);
     }
 
     private bool IsValidRequest(
