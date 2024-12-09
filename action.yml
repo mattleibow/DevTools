@@ -5,6 +5,7 @@ description: 'Update engagement scores in a project'
 inputs:
   project:
     description: 'The project to update the scores in.'
+    required: true
   column:
     description: 'The column to update the scores in.'
     default: 'Engagement Score'
@@ -12,8 +13,8 @@ inputs:
     description: 'The GitHub token to use when updating the project.'
     required: true
   update-project:
-    default: 'true'
     description: 'Whether or not to update the project items with the score.'
+    default: 'true'
 
 runs:
   using: "composite"
@@ -30,7 +31,7 @@ runs:
         PROJECT_FIELD_NAME: ${{ inputs.column }}
         UPDATE_PROJECT: ${{ inputs.update-project }}
       run: |
-        "Calculating the engagement scores.."
+        "Calculating the engagement scores..."
 
         Write-Output "::group::Sending the request to the server..."
         $body = ConvertTo-Json -InputObject @{
@@ -80,10 +81,11 @@ runs:
         $projectNumber = $response.project.number
         $projectOwner = $response.project.owner
         $projectUpdateCount = $response.totalItems
-        Write-Output "Project ID: $projectId"
-        Write-Output "Project Owner: $projectOwner"
-        Write-Output "Project Number: $projectNumber"
-        Write-Output "Project Items to Update: $projectUpdateCount"
+        Write-Output "Project Details:"
+        Write-Output "  ID: $projectId"
+        Write-Output "  Owner: $projectOwner"
+        Write-Output "  Number: $projectNumber"
+        Write-Output "  Items to Update: $projectUpdateCount"
 
         Write-Output "Loading the project field using the specified column name '$($env:PROJECT_FIELD_NAME)'..."
         $field = gh project field-list `
@@ -95,8 +97,9 @@ runs:
           Where-Object { $_.name -eq "$env:PROJECT_FIELD_NAME" }
         $fieldId = $field.id
         $fieldName = $field.name
-        Write-Output "Field ID: $fieldId"
-        Write-Output "Field Name: $fieldName"
+        Write-Output "Field Details:"
+        Write-Output "  ID: $fieldId"
+        Write-Output "  Name: $fieldName"
 
         Write-Output "Updating the scores in the project..."
         foreach ($item in $response.items) {
@@ -105,7 +108,7 @@ runs:
           $issueNumber = $item.issue.number
           $engagementScore = $item.engagement.score
 
-          Write-Output "Updating the score of issue $repository#$issueNumber to $engagementScore.."
+          Write-Output "  $repository#$issueNumber => $engagementScore"
 
           if ($env:UPDATE_PROJECT -eq 'true') {
             gh project item-edit `
