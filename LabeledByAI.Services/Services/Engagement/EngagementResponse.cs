@@ -1,5 +1,5 @@
 ﻿namespace LabeledByAI.Services;
 
 public record EngagementResponse(
-    EngagementResponseIssue Issue,
-    EngagementResponseEngagment Engagement);
+    IList<EngagementResponseItem> Items,
+    int TotalItems);

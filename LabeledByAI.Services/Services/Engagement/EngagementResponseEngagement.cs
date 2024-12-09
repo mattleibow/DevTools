@@ -1,4 +1,4 @@
 ﻿namespace LabeledByAI.Services;
 
-public record EngagementResponseEngagment(
+public record EngagementResponseEngagement(
     int Score);
