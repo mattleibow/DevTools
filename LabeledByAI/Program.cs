@@ -7,6 +7,8 @@ using OpenAI;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
+builder.Services.AddProblemDetails();
+
 builder.Services.AddSingleton<LabelSelectorService>();
 builder.Services.AddSingleton<EngagementService>();
 

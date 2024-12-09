@@ -11,7 +11,11 @@ public static class HttpRequestExtensions
         var githubToken = request.Headers[GitHubTokenHeaderName].ToString();
         if (string.IsNullOrWhiteSpace(githubToken))
         {
-            throw new ArgumentException("No GitHub token was provided in the request headers.", nameof(request));
+            throw new ProblemDetailsException(new()
+            {
+                Status = StatusCodes.Status401Unauthorized,
+                Detail = "No GitHub token was provided in the request headers."
+            });
         }
 
         return githubToken;
