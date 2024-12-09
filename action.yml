@@ -35,9 +35,9 @@ runs:
         Write-Output "::group::Sending the request to the server..."
         $body = ConvertTo-Json -InputObject @{
           version = 1
-          issue = @{
+          project = @{
             owner = "$env:PROJECT_OWNER"
-            repo = "$env:PROJECT_REPO"
+            number = "$env:PROJECT_NUMBER"
           }
         }
 
@@ -75,22 +75,20 @@ runs:
 
         Write-Output "::group::Updating the scores in the project..."
 
-        Write-Output "Loading the project using the specified project number '$($env:PROJECT_NUMBER)'..."
-        $project = gh project view "$env:PROJECT_NUMBER" `
-            --owner "$env:PROJECT_OWNER" `
-            --format json |
-          ConvertFrom-Json
-        $projectId = $project.id
-        $projectNumber = $project.number
-        $projectTitle = $project.title
+        Write-Output "Reading the project information..."
+        $projectId = $response.project.id
+        $projectNumber = $response.project.number
+        $projectOwner = $response.project.owner
+        $projectUpdateCount = $response.project.totalItems
         Write-Output "Project ID: $projectId"
+        Write-Output "Project Owner: $projectOwner"
         Write-Output "Project Number: $projectNumber"
-        Write-Output "Project Title: $projectTitle"
+        Write-Output "Project Items to Update: $projectUpdateCount"
 
         Write-Output "Loading the project field using the specified column name '$($env:PROJECT_FIELD_NAME)'..."
         $field = gh project field-list `
             $projectNumber `
-            --owner "$env:PROJECT_OWNER" `
+            --owner "$projectOwner" `
             --format json |
           ConvertFrom-Json |
           Select-Object -ExpandProperty fields |
@@ -100,26 +98,10 @@ runs:
         Write-Output "Field ID: $fieldId"
         Write-Output "Field Name: $fieldName"
 
-        Write-Output "Loading all the items in the project..."
-        $items = gh project item-list `
-            $projectNumber `
-            --owner "$env:PROJECT_OWNER" `
-            --limit 1000000 `
-            --format json |
-          ConvertFrom-Json |
-          Select-Object -ExpandProperty items
-        Write-Output "Found $($items.Count) items in the project."
-
         Write-Output "Updating the scores in the project..."
-        foreach ($item in $response) {
-          $repository = "$env:PROJECT_OWNER/$env:PROJECT_REPO"
-          $projectItem = $items |
-            Where-Object { 
-              $_.content.number -eq $item.issue.number -and 
-              $_.content.repository -eq $repository 
-            }
-
-          $itemId = $projectItem.id
+        foreach ($item in $response.items) {
+          $itemId = $item.id
+          $repository = "$($item.issue.owner)/$($item.issue.repo)"
           $issueNumber = $item.issue.number
           $engagementScore = $item.engagement.score
 
