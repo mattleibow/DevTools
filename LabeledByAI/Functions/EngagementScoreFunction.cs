@@ -1,6 +1,5 @@
 using LabeledByAI.Services;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
@@ -10,12 +9,12 @@ public class EngagementScoreFunction(EngagementService service, ILogger<Engageme
     : BaseFunction<EngagementRequest>(logger)
 {
     [Function("engagement-score")]
-    public override Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest request) =>
+    public override Task<IResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest request) =>
         base.Run(request);
 
-    protected override async Task<IActionResult> OnRun(HttpRequest request, EngagementRequest parsedBody)
+    protected override async Task<IResult> OnRun(HttpRequest request, EngagementRequest parsedBody)
     {
         var response = await service.CalculateScoresAsync(parsedBody, request.GetGithubToken());
-        return new OkObjectResult(response);
+        return TypedResults.Ok(response);
     }
 }

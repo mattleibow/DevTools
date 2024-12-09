@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Diagnostics.CodeAnalysis;
+using System.Net;
 
 namespace LabeledByAI.Services;
 
@@ -32,33 +32,47 @@ public class EngagementService(ILogger<EngagementService> logger)
         }
 
         logger.LogError("Request had neither an issue or project.");
-        throw new InvalidOperationException("Request had neither an issue or project.");
+        throw new ArgumentException("Request had neither an issue or project.", nameof(request));
     }
 
     private async Task<EngagementResponse> CalculateScoreAsync(EngagementRequestIssue reqIssue, GitHub github)
     {
-        // get github repository
-        var repo = github.GetRepository(reqIssue.Owner, reqIssue.Repo);
-
         IList<GitHubIssue> issues;
-        if (reqIssue.Number is int number)
+        try
         {
-            // load the single issue
-            logger.LogInformation("Loading the issue details...");
+            // get github repository
+            var repo = github.GetRepository(reqIssue.Owner, reqIssue.Repo);
 
-            var issue = await repo.GetIssueDetailedAsync(number);
-            issues = [issue];
+            if (reqIssue.Number is int number)
+            {
+                // load the single issue
+                logger.LogInformation("Loading the issue details...");
+
+                var issue = await repo.GetIssueDetailedAsync(number);
+                issues = [issue];
+            }
+            else
+            {
+                // load all the isses
+                logger.LogInformation("Loading all the issue details...");
+
+                issues = await repo.GetAllIssuesDetailedAsync();
+            }
         }
-        else
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
         {
-            // load all the isses
-            logger.LogInformation("Loading all the issue details...");
-
-            issues = await repo.GetAllIssuesDetailedAsync();
+            throw new UnauthorizedAccessException($"Unable to read any issues from the GitHub repository. {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Unable to read any issues from the GitHub repository. {ex.Message}", ex);
         }
 
-        if (!IsValidRequest(issues, out var errorResult))
-            throw new InvalidOperationException(errorResult);
+        if (issues is null || issues.Count == 0)
+        {
+            logger.LogWarning("No matching issues were found on GitHub, returing an empty response.");
+            return new EngagementResponse([], 0);
+        }
 
         // calculate the engagement score for each issue
         var items = new List<EngagementResponseItem>(issues.Count);
@@ -86,17 +100,33 @@ public class EngagementService(ILogger<EngagementService> logger)
 
     private async Task<EngagementResponse> CalculateScoreAsync(EngagementRequestProject reqProject, GitHub github)
     {
-        // get github project
-        var project = github.GetProject(reqProject.Owner, reqProject.Number);
+        string projectId;
+        IList<GitHubProjectItem> projectItems;
+        try
+        {
+            // get github project
+            var project = github.GetProject(reqProject.Owner, reqProject.Number);
 
-        // load all the items
-        logger.LogInformation("Loading all the project details...");
+            // load all the items
+            logger.LogInformation("Loading all the project details...");
 
-        var projectId = await project.GetProjectIdAsync();
-        var projectItems = await project.GetAllItemsDetailedAsync();
+            projectId = await project.GetProjectIdAsync();
+            projectItems = await project.GetAllItemsDetailedAsync();
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            throw new UnauthorizedAccessException($"Unable to read any issues from the GitHub repository. {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Unable to read any issues from the GitHub repository. {ex.Message}", ex);
+        }
 
-        //if (!IsValidRequest(projectItems, out var errorResult))
-        //    throw new InvalidOperationException(errorResult);
+        if (projectItems is null || projectItems.Count == 0)
+        {
+            logger.LogWarning("No matching items were found on GitHub, returing an empty response.");
+            return new EngagementResponse([], 0);
+        }
 
         // calculate the engagement score for each item
         var items = new List<EngagementResponseItem>(projectItems.Count);
@@ -133,21 +163,6 @@ public class EngagementService(ILogger<EngagementService> logger)
                 projectId,
                 reqProject.Owner,
                 reqProject.Number));
-    }
-
-    private bool IsValidRequest(
-        [NotNullWhen(true)] IList<GitHubIssue> issues,
-        [NotNullWhen(false)] out string? errorResult)
-    {
-        if (issues is null || issues.Count == 0)
-        {
-            logger.LogError("Unable to load issues from GitHub.");
-            errorResult = "The issues could not be loaded.";
-            return false;
-        }
-
-        errorResult = null;
-        return true;
     }
 
     private int CalculateScore(GitHubIssue issue)
