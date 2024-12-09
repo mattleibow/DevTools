@@ -136,7 +136,7 @@ public class EngagementService(ILogger<EngagementService> logger)
             {
                 GitHubIssue issue => (
                     new EngagementResponseIssue(
-                        projectItem.Id,
+                        issue.Id,
                         issue.Owner,
                         issue.Repository,
                         issue.Number),
@@ -148,7 +148,7 @@ public class EngagementService(ILogger<EngagementService> logger)
                 continue;
 
             var item = new EngagementResponseItem(
-                projectId,
+                projectItem.Id,
                 content,
                 new EngagementResponseEngagement(
                     score));
