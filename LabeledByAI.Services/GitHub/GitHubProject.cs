@@ -25,7 +25,7 @@ public class GitHubProject(GitHub github, string owner, int number)
     {
         var items = await GetAllItemsAsync(includeClosed);
 
-        foreach (var item in items)
+        await Parallel.ForEachAsync(items, async (item, ct) =>
         {
             if (item.Content is GitHubIssue issue)
             {
@@ -35,7 +35,7 @@ public class GitHubProject(GitHub github, string owner, int number)
 
             // TODO: PRs
             // TODO: draft issues
-        }
+        });
 
         return items;
     }
@@ -117,7 +117,7 @@ public class GitHubProject(GitHub github, string owner, int number)
                             i.Repository.Name,
                             i.Number,
                             i.State == IssueState.Open,
-                            i.Author.Login,
+                            i.Author == null ? "ghost" : i.Author.Login,
                             i.Title,
                             i.Body,
                             i.Comments(null, null, null, null, null)
@@ -132,8 +132,8 @@ public class GitHubProject(GitHub github, string owner, int number)
                                 .ToList()
                         ))
                     )
-                    // TODO: PRs
-                    // TODO: draft issues
+                // TODO: PRs
+                // TODO: draft issues
                 ))
                 .ToList()
             )

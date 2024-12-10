@@ -35,7 +35,7 @@ public class GitHubRepository(GitHub github, string owner, string repo)
     public async Task<GitHubIssue> GetIssueDetailedAsync(int number)
     {
         var issue = await GetIssueAsync(number);
-        if (issue.Comments is null)
+        if (issue.Comments is null && issue.TotalComments > 0)
         {
             var comments = await FetchIssueCommentsAsync(number);
             issue.Comments = comments;
@@ -60,14 +60,14 @@ public class GitHubRepository(GitHub github, string owner, string repo)
     {
         var issues = await GetAllIssuesAsync(includeClosed);
 
-        foreach (var issue in issues)
+        await Parallel.ForEachAsync(issues, async (issue, _) =>
         {
             if (issue.Comments is null)
             {
                 var comments = await FetchIssueCommentsAsync(issue.Number);
                 issue.Comments = comments;
             }
-        }
+        });
 
         return issues;
     }
@@ -92,8 +92,8 @@ public class GitHubRepository(GitHub github, string owner, string repo)
                     .AllPages()
                     .Select(c => new GitHubComment(
                         c.Id.ToString(),
-                        c.Author.Login,
-                        c.Author.ResourcePath,
+                        c.Author == null ? "ghost" : c.Author.Login,
+                        c.Author == null ? "/ghost" : c.Author.ResourcePath,
                         c.Body,
                         c.CreatedAt,
                         c.Reactions(null, null, null, null, null, null)
