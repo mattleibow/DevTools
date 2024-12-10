@@ -1,108 +1,54 @@
-name: 'Apply Label Using AI'
+name: 'Update Engagement Scores'
 
-description: 'Use AI to find the best label to apply to a new issue'
+description: 'Update engagement scores in a project'
 
 inputs:
-  # inputs to allow for configuration, only one should be used
-  # at a time and the inputs are used in the order of precedence
-  # - exact labels (labels)
-  # - label patern matching (label-pattern)
-  labels:
-    description: 'The list of labels to look through.'
-  label-pattern:
-    description: 'The regex pattern to use to match the labels.'
-  # inputs to allow for control of the action
-  apply-label:
+  project:
+    description: 'The project to update the scores in.'
+    required: true
+  column:
+    description: 'The column to update the scores in.'
+    default: 'Engagement Score'
+  project-token:
+    description: 'The GitHub token to use when updating the project.'
+    required: true
+  update-project:
+    description: 'Whether or not to update the project items with the score.'
     default: 'true'
-    description: 'Whether or not to apply the label automatically.'
-  add-comment:
-    default: 'true'
-    description: 'Whether or not to Write a comment on the issue after applying the label with an explanation.'
-  # inputs to allow for testing purposes
-  issue-json:
-    description: 'The json object of the issue to be labeled.'
-    deprecationMessage: 'This is deprecated and will be removed.'
-
-outputs:
-  label:
-    description: "The label that will be applied to the issue"
-    value: ${{ steps.get-label.outputs.SELECTED_LABEL }}
-  reason:
-    description: "The reasopn for the label being selected"
-    value: ${{ steps.get-label.outputs.SELECTED_REASON }}
 
 runs:
   using: "composite"
   steps:
 
-    - name: Find the best label using AI
-      id: get-label
+    - name: Update the engagement scores
       shell: pwsh
       env:
-        GH_TOKEN: ${{ github.token }}                       # for the gh CLI tool
-        GITHUB_ISSUE: ${{ toJson(github.event.issue) }}     # the issue json from the event
-        LABEL_NAMES: ${{ inputs.labels }}                   # the exact labels to look through
-        LABEL_PATTERN: ${{ inputs.label-pattern }}          # the label pattern to match
-        GITHUB_ISSUE_DEPRECATED: ${{ inputs.issue-json }}   # testing purposes only
+        GH_TOKEN: ${{ inputs.project-token }}
+        GITHUB_TOKEN: ${{ inputs.project-token }}
+        PROJECT_OWNER: ${{ github.event.repository.owner.login }}
+        PROJECT_REPO: ${{ github.event.repository.name }}
+        PROJECT_NUMBER: ${{ inputs.project }}
+        PROJECT_FIELD_NAME: ${{ inputs.column }}
+        UPDATE_PROJECT: ${{ inputs.update-project }}
       run: |
-        "Finding the best label using AI.."
+        "Calculating the engagement scores..."
 
-        Write-Output "::group::Validating inputs..."
-        # Parse the issue json from the event or fall back
-        # to the deprecated method of reading the issue json
-        # from the environment variable
-        $issue = "$env:GITHUB_ISSUE" | ConvertFrom-Json
-        if (-not $issue) {
-          $issue = "$env:GITHUB_ISSUE_DEPRECATED" | ConvertFrom-Json
-        }
-
-        if (-not $issue) {
-          Write-Error "No issue was found to label."
-          Write-Output "::endgroup::"
-          exit 1
-        }
-        
-        Write-Output "Issue Number:"
-        Write-Output $issue.number
-        Write-Output "Issue Title:"
-        Write-Output $issue.title
-        Write-Output "Issue Body:"
-        Write-Output $issue.body
-
-        Write-Output "Labels:"
-        if ($env:LABEL_NAMES) {
-          $labelsNames =
-            $env:LABEL_NAMES -split '\r|\n' |
-            ForEach-Object { $_.Trim() } |
-            Where-Object { $_ -ne '' }
-          Write-Output "- Labels:"
-          $labelsNames | ForEach-Object { Write-Output "  - $_" }
-        } elseif ($env:LABEL_PATTERN) {
-          $labelRegex = "$env:LABEL_PATTERN"
-          Write-Output "- Pattern:"
-          Write-Output "  $labelRegex"
-        }
-
-        Write-Output "::endgroup::"
-
-        Write-Output "::group::Asking the AI to find the best label..."
+        Write-Output "::group::Sending the request to the server..."
         $body = ConvertTo-Json -InputObject @{
           version = 1
-          issue = @{
-            owner = "${{ github.event.repository.owner.login }}"
-            repo = "${{ github.event.repository.name }}"
-            number = $issue.number
-          }
-          labels = @{
-              names = $labelsNames
-              pattern = $labelRegex
+          project = @{
+            owner = "$env:PROJECT_OWNER"
+            number = "$env:PROJECT_NUMBER"
           }
         }
 
-        $hostAddress = "https://labeled-by-ai.yellowhill-0060a70b.southafricanorth.azurecontainerapps.io"
-        $uri = "$hostAddress/api/label"
+        Write-Output "JSON Body:"
+        Write-Output $body
+
+        $hostAddress = "https://labeled-by-ai.braveisland-12c152b6.southafricanorth.azurecontainerapps.io"
+        $uri = "$hostAddress/api/engagement-score"
         $headers = @{
-          'X-GitHub-Token' = "$env:GH_TOKEN"
+          'X-GitHub-Token' = "$env:GITHUB_TOKEN"
         }
         $response = Invoke-RestMethod `
           -Method Post `
@@ -112,75 +58,65 @@ runs:
           -Headers $headers `
           -StatusCodeVariable responseStatusCode
 
-        Write-Output "The AI replied with a status code of: $responseStatusCode"
+        Write-Output "The server replied with a status code of: $responseStatusCode"
 
         if (-not $response) {
-          Write-Error "Failed to get a response from the AI service."
+          Write-Error "Failed to get a response from the server."
           Write-Output "::endgroup::"
           exit 1
         }
 
-        if (-not $response.label) {
-          Write-Warning "No labels matched the contents of this issue."
+        if ($response.Count -eq 0) {
+          Write-Warning "No open issues were found."
           Write-Output "::endgroup::"
           exit 0
         }
 
         Write-Output "::endgroup::"
 
-        Write-Output "Found a great label to apply to the issue: $($response.label)"
-        Write-Output "The reasoning is: $($response.reason)"
+        Write-Output "::group::Updating the scores in the project..."
 
-        "ISSUE_NUMBER=$($issue.number)" >> $env:GITHUB_OUTPUT
-        "SELECTED_LABEL=$($response.label)" >> $env:GITHUB_OUTPUT
-        "SELECTED_REASON=$($response.reason)" >> $env:GITHUB_OUTPUT
+        Write-Output "Reading the project information..."
+        $projectId = $response.project.id
+        $projectNumber = $response.project.number
+        $projectOwner = $response.project.owner
+        $projectUpdateCount = $response.totalItems
+        Write-Output "Project Details:"
+        Write-Output "  ID: $projectId"
+        Write-Output "  Owner: $projectOwner"
+        Write-Output "  Number: $projectNumber"
+        Write-Output "  Items to Update: $projectUpdateCount"
 
-    - name: Apply the selected label to the issue
-      shell: pwsh
-      id: apply-label
-      if: ${{ inputs.apply-label == 'true' && steps.get-label.outputs.SELECTED_LABEL != null }}
-      env:
-        GH_TOKEN: ${{ github.token }}
-        ISSUE_NUMBER: ${{ steps.get-label.outputs.ISSUE_NUMBER }}
-        SELECTED_LABEL: ${{ steps.get-label.outputs.SELECTED_LABEL }}
-        SELECTED_REASON: ${{ steps.get-label.outputs.SELECTED_REASON }}
-      run: |
-        "Applying the selected label to the issue.."
+        Write-Output "Loading the project field using the specified column name '$($env:PROJECT_FIELD_NAME)'..."
+        $field = gh project field-list `
+            $projectNumber `
+            --owner "$projectOwner" `
+            --format json |
+          ConvertFrom-Json |
+          Select-Object -ExpandProperty fields |
+          Where-Object { $_.name -eq "$env:PROJECT_FIELD_NAME" }
+        $fieldId = $field.id
+        $fieldName = $field.name
+        Write-Output "Field Details:"
+        Write-Output "  ID: $fieldId"
+        Write-Output "  Name: $fieldName"
 
-        Write-Output "::group::Applying the label..."
+        Write-Output "Updating the scores in the project..."
+        foreach ($item in $response.items) {
+          $itemId = $item.id
+          $repository = "$($item.issue.owner)/$($item.issue.repo)"
+          $issueNumber = $item.issue.number
+          $engagementScore = $item.engagement.score
 
-        $repoUrl = "${{ github.repositoryUrl }}"
-        $issueNumber = "$env:ISSUE_NUMBER"
-        $label = "$env:SELECTED_LABEL"
+          Write-Output "  $repository#$issueNumber => $engagementScore"
 
-        gh issue edit --repo "$repoUrl" $issueNumber --add-label "$label"
-
-        Write-Output "::endgroup::"
-
-    - name: Add a comment on the issue with a reason for the label
-      shell: pwsh
-      id: add-comment
-      if: ${{ inputs.add-comment == 'true' && steps.get-label.outputs.SELECTED_LABEL != null && steps.get-label.outputs.SELECTED_REASON != null }}
-      env:
-        GH_TOKEN: ${{ github.token }}
-        ISSUE_NUMBER: ${{ steps.get-label.outputs.ISSUE_NUMBER }}
-        SELECTED_LABEL: ${{ steps.get-label.outputs.SELECTED_LABEL }}
-        SELECTED_REASON: ${{ steps.get-label.outputs.SELECTED_REASON }}
-      run: |
-        "Adding a comment on the issue with a reason for the label.."
-
-        Write-Output "::group::Adding the comment..."
-
-        $repoUrl = "${{ github.repositoryUrl }}"
-        $issueNumber = "$env:ISSUE_NUMBER"
-        $label = "$env:SELECTED_LABEL"
-        $reason = "$env:SELECTED_REASON"
-
-        $body = 
-          "The AI has selected the label ``$label`` for this issue and gave the following reason: `n`n" +
-          "> $reason `n`n" +
-          "If this is not correct, you can change the label to the correct one."
-
-        gh issue comment --repo "$repoUrl" $issueNumber --body "$body"
+          if ($env:UPDATE_PROJECT -eq 'true') {
+            gh project item-edit `
+              --id "$itemId" `
+              --project-id "$projectId" `
+              --field-id "$fieldId" `
+              --number "$engagementScore"
+          }
+        }
 
         Write-Output "::endgroup::"
