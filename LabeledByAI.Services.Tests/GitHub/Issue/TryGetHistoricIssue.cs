@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 
 namespace LabeledByAI.Services.Tests;
-
 public partial class GitHubIssueUnitTests
 {
     public class TryGetHistoricIssue
@@ -9,7 +8,7 @@ public partial class GitHubIssueUnitTests
         [Fact]
         public void GettingHistoricIssueBeforeCreationIsInvalid()
         {
-            var issue = CreateIssue();
+            var issue = Helpers.CreateIssue();
 
             var pastDate = issue.CreatedOn.AddDays(-1);
 
@@ -25,11 +24,11 @@ public partial class GitHubIssueUnitTests
             var createDate = DateTimeOffset.Now.AddDays(-2);
             var pastDate = createDate.AddDays(1);
 
-            var issue = CreateIssue(
+            var issue = Helpers.CreateIssue(
                 createdOn: createDate,
                 lastActivityOn: createDate);
 
-            var expectedHistoric = CreateIssue(
+            var expectedHistoric = Helpers.CreateIssue(
                 createdOn: createDate,
                 lastActivityOn: pastDate);
 
