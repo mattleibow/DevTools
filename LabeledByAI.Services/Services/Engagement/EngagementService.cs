@@ -36,7 +36,7 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
         throw new ArgumentException("Request had neither an issue or project.", nameof(request));
     }
 
-    private async Task<EngagementResponse> CalculateScoreAsync(EngagementRequestIssue reqIssue, GitHub github)
+    public async Task<EngagementResponse> CalculateScoreAsync(EngagementRequestIssue reqIssue, GitHub github)
     {
         IReadOnlyList<GitHubIssue> issues;
         try
@@ -99,7 +99,7 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
             items.Count);
     }
 
-    private async Task<EngagementResponse> CalculateScoreAsync(EngagementRequestProject reqProject, GitHub github)
+    public async Task<EngagementResponse> CalculateScoreAsync(EngagementRequestProject reqProject, GitHub github)
     {
         string projectId;
         IReadOnlyList<GitHubProjectItem> projectItems;
@@ -166,7 +166,7 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
                 reqProject.Number));
     }
 
-    private int CalculateScore(GitHubIssue issue)
+    public int CalculateScore(GitHubIssue issue)
     {
         // Components:
         //  - Number of Comments       => Indicates discussion and interest
