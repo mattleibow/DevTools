@@ -91,6 +91,51 @@ public class GitHubRemoteConnection : IGitHubConnection
         return details;
     }
 
+    public async Task<GitHubIssueDetails> FetchIssueDetailsAsync(string owner, string repo, int number)
+    {
+        var query = new Query()
+            .Repository(owner: owner, name: repo)
+            .Issue(number: number)
+            .Select(i => new GitHubIssueDetails(
+                i.Comments(null, null, null, null, null)
+                    .AllPages()
+                    .Select(c => new GitHubComment(
+                        c.Id.ToString(),
+                        c.Author == null ? "ghost" : c.Author.Login,
+                        c.Author == null ? "/ghost" : c.Author.ResourcePath,
+                        c.Body,
+                        c.CreatedAt,
+                        c.Reactions(null, null, null, null, null, null)
+                            .TotalCount)
+                    {
+                        Reactions = c.Reactions(null, null, null, null, null, null)
+                            .AllPages()
+                            .Select(r => new GitHubReaction(
+                                r.Id.ToString(),
+                                r.User == null ? "ghost" : r.User.Login,
+                                r.Content.ToString(),
+                                r.CreatedAt
+                            ))
+                            .ToList()
+                    })
+                    .ToList(),
+                i.Reactions(null, null, null, null, null, null)
+                    .AllPages()
+                    .Select(r => new GitHubReaction(
+                        r.Id.ToString(),
+                        r.User == null ? "ghost" : r.User.Login,
+                        r.Content.ToString(),
+                        r.CreatedAt
+                    ))
+                    .ToList()
+            ))
+            .Compile();
+
+        var details = await Connection.Run(query);
+
+        return details;
+    }
+
     public async Task<IReadOnlyList<GitHubLabel>> FetchLabelsAsync(string owner, string repo)
     {
         var query = new Query()
