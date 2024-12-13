@@ -1,7 +1,4 @@
-﻿using Octokit.GraphQL;
-using Octokit.GraphQL.Model;
-
-namespace LabeledByAI.Services;
+﻿namespace LabeledByAI.Services;
 
 public class GitHubProject(GitHub github, string owner, int number)
 {
@@ -13,7 +10,7 @@ public class GitHubProject(GitHub github, string owner, int number)
     {
         if (string.IsNullOrEmpty(_projectId))
         {
-            _projectIdTask ??= FetchProjectIdAsync();
+            _projectIdTask ??= github.Connection.FetchProjectIdAsync(owner, number);
 
             _projectId = await _projectIdTask;
         }
@@ -21,7 +18,7 @@ public class GitHubProject(GitHub github, string owner, int number)
         return _projectId;
     }
 
-    public async Task<IList<GitHubProjectItem>> GetAllItemsDetailedAsync(bool includeClosed = false)
+    public async Task<IReadOnlyList<GitHubProjectItem>> GetAllItemsDetailedAsync(bool includeClosed = false)
     {
         var items = await GetAllItemsAsync(includeClosed);
 
@@ -40,11 +37,11 @@ public class GitHubProject(GitHub github, string owner, int number)
         return items;
     }
 
-    public async Task<IList<GitHubProjectItem>> GetAllItemsAsync(bool includeClosed = false)
+    public async Task<IReadOnlyList<GitHubProjectItem>> GetAllItemsAsync(bool includeClosed = false)
     {
         var projectId = await GetProjectIdAsync();
 
-        var items = await FetchAllItemsAsync(projectId);
+        var items = await github.Connection.FetchAllProjectItemsAsync(projectId);
 
         foreach (var item in items)
         {
@@ -70,77 +67,5 @@ public class GitHubProject(GitHub github, string owner, int number)
         }
 
         return items;
-    }
-
-    private async Task<string> FetchProjectIdAsync()
-    {
-        string projectId;
-        try
-        {
-            var orgQuery = new Query()
-                .Organization(owner)
-                .ProjectV2(number)
-                .Select(project => project.Id.Value)
-                .Compile();
-
-            projectId = await github.Connection.Run(orgQuery);
-        }
-        catch (Exception ex)
-        {
-            var userQuery = new Query()
-                .User(owner)
-                .ProjectV2(number)
-                .Select(project => project.Id.Value)
-                .Compile();
-
-            projectId = await github.Connection.Run(userQuery);
-        }
-
-        return projectId;
-    }
-
-    private async Task<IList<GitHubProjectItem>> FetchAllItemsAsync(string projectId)
-    {
-        var query = new Query()
-            .Node(new ID(projectId))
-            .Cast<ProjectV2>()
-            .Select(project => project
-                .Items(null, null, null, null, null)
-                .AllPages()
-                .Select(item => new GitHubProjectItem(
-                    item.Id.Value,
-                    (GitHubProjectItemType)item.Type,
-                    item.Content.Switch<GitHubIssue>(content => content
-                        .Issue(i => new GitHubIssue(
-                            i.Id.ToString(),
-                            i.Repository.Owner.Login,
-                            i.Repository.Name,
-                            i.Number,
-                            i.State == IssueState.Open,
-                            i.Author == null ? "ghost" : i.Author.Login,
-                            i.Title,
-                            i.Body,
-                            i.Comments(null, null, null, null, null)
-                                .TotalCount,
-                            i.Reactions(null, null, null, null, null, null)
-                                .TotalCount,
-                            i.UpdatedAt,
-                            i.CreatedAt,
-                            i.Labels(null, null, null, null, null)
-                                .AllPages()
-                                .Select(l => l.Name)
-                                .ToList()
-                        ))
-                    )
-                // TODO: PRs
-                // TODO: draft issues
-                ))
-                .ToList()
-            )
-            .Compile();
-
-        var items = await github.Connection.Run(query);
-
-        return items.ToList();
     }
 }

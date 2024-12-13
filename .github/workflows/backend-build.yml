@@ -18,3 +18,5 @@ jobs:
           dotnet-version: 9.0.x
       - name: Build solution
         run: dotnet build
+      - name: Test solution
+        run: dotnet test

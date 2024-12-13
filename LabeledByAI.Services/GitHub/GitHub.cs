@@ -1,18 +1,11 @@
-﻿using Octokit.GraphQL;
+﻿namespace LabeledByAI.Services;
 
-namespace LabeledByAI.Services;
-
-public class GitHub(Connection connection)
+public class GitHub(IGitHubConnection connection)
 {
     private readonly Dictionary<(string Owner, string Repo), GitHubRepository> _repositories = [];
     private readonly Dictionary<(string Owner, int Number), GitHubProject> _projects = [];
 
-    public GitHub(string githubToken, string applicationName = "labeled-by-ai")
-        : this(new Connection(new ProductHeaderValue(applicationName), githubToken))
-    {
-    }
-
-    public Connection Connection { get; } = connection;
+    public IGitHubConnection Connection { get; } = connection;
 
     public GitHubRepository GetRepository(string owner, string repo)
     {

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace LabeledByAI.Services;
 
-public class LabelSelectorService(IChatClient chatClient, ILogger<LabelSelectorService> logger)
+public class LabelSelectorService(IGitHubConnection githubConnection, IChatClient chatClient, ILogger<LabelSelectorService> logger)
 {
     public async Task<LabelSelectorResponse> SelectLabelAsync(LabelSelectorRequest request, string githubToken)
     {
@@ -13,7 +13,8 @@ public class LabelSelectorService(IChatClient chatClient, ILogger<LabelSelectorS
         var reqLabels = request.Labels;
 
         // get github repository
-        var github = new GitHub(githubToken);
+        githubConnection.SetToken(githubToken);
+        var github = new GitHub(githubConnection);
         var repo = github.GetRepository(reqIssue.Owner, reqIssue.Repo);
 
         // load the issue details from the repository
@@ -38,7 +39,7 @@ public class LabelSelectorService(IChatClient chatClient, ILogger<LabelSelectorS
 
     private bool IsValidRequest(
         [NotNullWhen(true)] GitHubIssue? issue,
-        [NotNullWhen(true)] IList<GitHubLabel>? labels,
+        [NotNullWhen(true)] IReadOnlyList<GitHubLabel>? labels,
         [NotNullWhen(false)] out string? errorResult)
     {
         if (string.IsNullOrWhiteSpace(issue?.Id))
@@ -61,7 +62,7 @@ public class LabelSelectorService(IChatClient chatClient, ILogger<LabelSelectorS
 
     private bool IsValidResponse(
         [NotNullWhen(true)] GitHubIssue? issue,
-        [NotNullWhen(true)] IList<GitHubLabel>? labels,
+        [NotNullWhen(true)] IReadOnlyList<GitHubLabel>? labels,
         [NotNullWhen(true)] LabelSelectorResponse? response,
         [NotNullWhen(false)] out string? errorResult)
     {
@@ -69,7 +70,7 @@ public class LabelSelectorService(IChatClient chatClient, ILogger<LabelSelectorS
         return true;
     }
 
-    public async Task<LabelSelectorResponse?> GetBestLabelAsync(GitHubIssue issue, IList<GitHubLabel> availableLabels)
+    public async Task<LabelSelectorResponse?> GetBestLabelAsync(GitHubIssue issue, IReadOnlyList<GitHubLabel> availableLabels)
     {
         logger?.LogInformation("Generating OpenAI request...");
 
