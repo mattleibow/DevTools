@@ -27,12 +27,8 @@ public partial class GitHubRepositoryUnitTests
 
             var issues = await repo.GetAllIssuesDetailedAsync(true);
 
-            issues[0].Comments.Should()
-                .BeEquivalentTo(BasicExpectedDetails[1].Comments, options => options
-                    .Excluding(o => o.Age));
-            issues[1].Comments.Should()
-                .BeEquivalentTo(BasicExpectedDetails[2].Comments, options => options
-                    .Excluding(o => o.Age));
+            issues[0].Comments.Should().BeEquivalentTo(BasicExpectedDetails[1].Comments);
+            issues[1].Comments.Should().BeEquivalentTo(BasicExpectedDetails[2].Comments);
             issues[2].Comments.Should().BeNullOrEmpty();
 
             issues[0].Reactions.Should().BeEquivalentTo(BasicExpectedDetails[1].Reactions);
@@ -47,9 +43,7 @@ public partial class GitHubRepositoryUnitTests
 
             var issues = await repo.GetAllIssuesDetailedAsync(false);
 
-            issues[0].Comments.Should()
-                .BeEquivalentTo(BasicExpectedDetails[1].Comments, options => options
-                    .Excluding(o => o.Age));
+            issues[0].Comments.Should().BeEquivalentTo(BasicExpectedDetails[1].Comments);
             issues[1].Comments.Should().BeNullOrEmpty();
 
             issues[0].Reactions.Should().BeEquivalentTo(BasicExpectedDetails[1].Reactions);

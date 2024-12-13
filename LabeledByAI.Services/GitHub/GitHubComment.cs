@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace LabeledByAI.Services;
+﻿namespace LabeledByAI.Services;
 
 public record GitHubComment(
     string Id,
@@ -14,8 +12,4 @@ public record GitHubComment(
 
     public bool IsUser =>
         !AuthorType.StartsWith("/apps/");
-
-    [JsonIgnore]
-    public TimeSpan Age =>
-        DateTimeOffset.UtcNow - CreatedOn;
 }

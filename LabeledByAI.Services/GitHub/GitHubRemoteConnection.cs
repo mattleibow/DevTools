@@ -41,9 +41,9 @@ public class GitHubRemoteConnection : IGitHubConnection
             )
             .Compile();
 
-        var details = await Connection.Run(query);
+        var comments = await Connection.Run(query);
 
-        return details;
+        return comments;
     }
 
     public async Task<GitHubIssueDetails> FetchIssueDetailsAsync(string owner, string repo, int number)
@@ -193,7 +193,7 @@ public class GitHubRemoteConnection : IGitHubConnection
 
             projectId = await Connection.Run(orgQuery);
         }
-        catch (Exception ex)
+        catch
         {
             var userQuery = new Query()
                 .User(owner)
