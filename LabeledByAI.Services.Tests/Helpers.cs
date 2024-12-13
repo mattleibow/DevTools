@@ -43,7 +43,7 @@ public static class Helpers
 
     public static GitHubComment CreateComment(
        string id = "comment_id",
-       string author = "author_name",
+       string author = "author",
        bool isBot = false,
        string body = "Issue Body",
        DateTimeOffset? createdOn = default,
@@ -58,5 +58,20 @@ public static class Helpers
             totalReactions ?? 0);
 
         return comment;
+    }
+
+    public static GitHubReaction CreateReaction(
+       string id = "reaction_id",
+       string author = "author",
+       string reaction = "thumbs_up",
+       DateTimeOffset? createdOn = default)
+    {
+        var reactionObj = new GitHubReaction(
+            id,
+            author,
+            reaction,
+            createdOn ?? FakeNow);
+
+        return reactionObj;
     }
 }
