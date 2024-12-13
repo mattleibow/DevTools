@@ -17,5 +17,5 @@ public record GitHubComment(
 
     [JsonIgnore]
     public TimeSpan Age =>
-        DateTimeOffset.UtcNow - CreatedOn;
+        DateTimeOffset.Now - CreatedOn;
 }

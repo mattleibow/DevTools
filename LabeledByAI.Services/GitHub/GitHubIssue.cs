@@ -40,11 +40,11 @@ public record GitHubIssue(
 
     [JsonIgnore]
     public TimeSpan Age =>
-        DateTimeOffset.UtcNow - CreatedOn.ToUniversalTime();
+        DateTimeOffset.Now - CreatedOn;
 
     [JsonIgnore]
     public TimeSpan TimeSinceLastActivity =>
-        DateTimeOffset.UtcNow - LastActivityOn.ToUniversalTime();
+        DateTimeOffset.Now - LastActivityOn;
 
     public bool TryGetHistoricIssue(DateTimeOffset lastActivityOn, [NotNullWhen(true)] out GitHubIssue? historic)
     {
@@ -60,7 +60,7 @@ public record GitHubIssue(
             .Where(c => c.CreatedOn <= lastActivityOn)
             .Select(c => c with
             {
-                Reactions = c.Reactions
+                Reactions = c.Reactions?
                     .Where(r => r.CreatedOn <= lastActivityOn)
                     .ToList()
             })
