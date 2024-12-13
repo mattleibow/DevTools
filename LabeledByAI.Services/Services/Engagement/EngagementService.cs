@@ -175,7 +175,7 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
             ? CalculateScore(historic)
             : 0;
 
-    private int CalculateScore(GitHubIssue issue)
+    public int CalculateScore(GitHubIssue issue)
     {
         // Components:
         //  - Number of Comments       => Indicates discussion and interest

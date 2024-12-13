@@ -193,7 +193,7 @@ public class GitHubRemoteConnection : IGitHubConnection
 
             projectId = await Connection.Run(orgQuery);
         }
-        catch (Exception ex)
+        catch
         {
             var userQuery = new Query()
                 .User(owner)
