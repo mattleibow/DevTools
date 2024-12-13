@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace LabeledByAI.Services;
 
@@ -39,9 +40,45 @@ public record GitHubIssue(
 
     [JsonIgnore]
     public TimeSpan Age =>
-        DateTimeOffset.UtcNow - CreatedOn;
+        DateTimeOffset.UtcNow - CreatedOn.ToUniversalTime();
 
     [JsonIgnore]
     public TimeSpan TimeSinceLastActivity =>
-        DateTimeOffset.UtcNow - LastActivityOn;
+        DateTimeOffset.UtcNow - LastActivityOn.ToUniversalTime();
+
+    public bool TryGetHistoricIssue(DateTimeOffset lastActivityOn, [NotNullWhen(true)] out GitHubIssue? historic)
+    {
+        // fail fast if the issue was created after the date we want
+        if (CreatedOn > lastActivityOn)
+        {
+            historic = null;
+            return false;
+        }
+
+        // get comments and comment reactions
+        var comments = Comments?
+            .Where(c => c.CreatedOn <= lastActivityOn)
+            .Select(c => c with
+            {
+                Reactions = c.Reactions
+                    .Where(r => r.CreatedOn <= lastActivityOn)
+                    .ToList()
+            })
+            .ToList();
+
+        // get issue reactions
+        var reactions = Reactions?
+            .Where(r => r.CreatedOn <= lastActivityOn)
+            .ToList();
+
+        var oldIssue = this with
+        {
+            Comments = comments,
+            Reactions = reactions,
+            LastActivityOn = lastActivityOn
+        };
+
+        historic = oldIssue;
+        return true;
+    }
 }

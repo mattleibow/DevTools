@@ -80,6 +80,7 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
         foreach (var issue in issues)
         {
             var score = CalculateScore(issue);
+            var previousScore = CalculatePreviousScore(issue);
 
             var item = new EngagementResponseItem(
                 null,
@@ -89,7 +90,8 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
                     reqIssue.Repo,
                     issue.Number),
                 new EngagementResponseEngagement(
-                    score));
+                    score,
+                    previousScore));
 
             items.Add(item);
         }
@@ -133,7 +135,7 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
         var items = new List<EngagementResponseItem>(projectItems.Count);
         foreach (var projectItem in projectItems)
         {
-            var (content, score) = projectItem.Content switch
+            var (content, score, previousScore) = projectItem.Content switch
             {
                 GitHubIssue issue => (
                     new EngagementResponseIssue(
@@ -141,8 +143,9 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
                         issue.Owner,
                         issue.Repository,
                         issue.Number),
-                    CalculateScore(issue)),
-                _ => (null, 0)
+                    CalculateScore(issue),
+                    CalculatePreviousScore(issue)),
+                _ => (null, 0, 0)
             };
 
             if (content is null)
@@ -152,7 +155,8 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
                 projectItem.Id,
                 content,
                 new EngagementResponseEngagement(
-                    score));
+                    score,
+                    previousScore));
 
             items.Add(item);
         }
@@ -166,7 +170,12 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
                 reqProject.Number));
     }
 
-    public int CalculateScore(GitHubIssue issue)
+    private int CalculatePreviousScore(GitHubIssue issue) =>
+        issue.TryGetHistoricIssue(DateTimeOffset.Now.AddDays(-7), out var historic)
+            ? CalculateScore(historic)
+            : 0;
+
+    private int CalculateScore(GitHubIssue issue)
     {
         // Components:
         //  - Number of Comments       => Indicates discussion and interest

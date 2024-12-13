@@ -127,3 +127,15 @@ X-GitHub-Token: {{GitHubToken}}
 }
 
 ###
+
+POST {{HostAddress}}/api/issue
+Content-Type: application/json
+X-GitHub-Token: {{GitHubToken}}
+
+{
+  "owner": "mono",
+  "repo": "SkiaSharp",
+  "number": 3110
+}
+
+###
