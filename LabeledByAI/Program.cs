@@ -9,8 +9,9 @@ var builder = FunctionsApplication.CreateBuilder(args);
 
 builder.Services.AddProblemDetails();
 
-builder.Services.AddSingleton<LabelSelectorService>();
-builder.Services.AddSingleton<EngagementService>();
+builder.Services.AddScoped<LabelSelectorService>();
+builder.Services.AddScoped<EngagementService>();
+builder.Services.AddScoped<IGitHubConnection, GitHubRemoteConnection>();
 
 builder.AddServiceDefaults();
 

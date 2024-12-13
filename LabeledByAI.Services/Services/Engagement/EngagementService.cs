@@ -3,7 +3,7 @@ using System.Net;
 
 namespace LabeledByAI.Services;
 
-public class EngagementService(ILogger<EngagementService> logger)
+public class EngagementService(IGitHubConnection githubConnection, ILogger<EngagementService> logger)
 {
     public async Task<EngagementResponse> CalculateScoresAsync(EngagementRequest request, string githubToken)
     {
@@ -19,7 +19,8 @@ public class EngagementService(ILogger<EngagementService> logger)
         // - calc all issues in a project
         // - calc all issues in a project in the last [7/10/30] days
 
-        var github = new GitHub(githubToken);
+        githubConnection.SetToken(githubToken);
+        var github = new GitHub(githubConnection);
 
         if (request.Issue is { } reqIssue)
         {
@@ -37,7 +38,7 @@ public class EngagementService(ILogger<EngagementService> logger)
 
     private async Task<EngagementResponse> CalculateScoreAsync(EngagementRequestIssue reqIssue, GitHub github)
     {
-        IList<GitHubIssue> issues;
+        IReadOnlyList<GitHubIssue> issues;
         try
         {
             // get github repository
@@ -101,7 +102,7 @@ public class EngagementService(ILogger<EngagementService> logger)
     private async Task<EngagementResponse> CalculateScoreAsync(EngagementRequestProject reqProject, GitHub github)
     {
         string projectId;
-        IList<GitHubProjectItem> projectItems;
+        IReadOnlyList<GitHubProjectItem> projectItems;
         try
         {
             // get github project

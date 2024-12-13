@@ -1,17 +1,17 @@
-﻿using Octokit.GraphQL;
-using Octokit.GraphQL.Model;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace LabeledByAI.Services;
 
 public class GitHubRepository(GitHub github, string owner, string repo)
 {
-    private List<GitHubLabel>? _allLabels;
+    private IReadOnlyList<GitHubLabel>? _allLabels;
     private readonly Dictionary<int, GitHubIssue> _allIssues = [];
 
-    public async Task<IList<GitHubLabel>> GetLabelsAsync(GitHubLabelFilter? filter = null)
+    public GitHub GitHub => github;
+
+    public async Task<IReadOnlyList<GitHubLabel>> GetLabelsAsync(GitHubLabelFilter? filter = null)
     {
-        _allLabels ??= await FetchLabelsAsync();
+        _allLabels ??= await github.Connection.FetchLabelsAsync(owner, repo);
 
         if (filter is null)
         {
@@ -25,7 +25,7 @@ public class GitHubRepository(GitHub github, string owner, string repo)
     {
         if (!_allIssues.TryGetValue(number, out var issue))
         {
-            issue = await FetchIssueAsync(number);
+            issue = await github.Connection.FetchIssueAsync(owner, repo, number);
             _allIssues[number] = issue;
         }
 
@@ -37,16 +37,16 @@ public class GitHubRepository(GitHub github, string owner, string repo)
         var issue = await GetIssueAsync(number);
         if (issue.Comments is null && issue.TotalComments > 0)
         {
-            var comments = await FetchIssueCommentsAsync(number);
+            var comments = await github.Connection.FetchIssueCommentsAsync(owner, repo, number);
             issue.Comments = comments;
         }
 
         return issue;
     }
 
-    public async Task<IList<GitHubIssue>> GetAllIssuesAsync(bool includeClosed = false)
+    public async Task<IReadOnlyList<GitHubIssue>> GetAllIssuesAsync(bool includeClosed = false)
     {
-        var issues = await FetchAllIssuesAsync(includeClosed);
+        var issues = await github.Connection.FetchAllIssuesAsync(owner, repo, includeClosed);
 
         foreach (var issue in issues)
         {
@@ -56,15 +56,15 @@ public class GitHubRepository(GitHub github, string owner, string repo)
         return issues;
     }
 
-    public async Task<IList<GitHubIssue>> GetAllIssuesDetailedAsync(bool includeClosed = false)
+    public async Task<IReadOnlyList<GitHubIssue>> GetAllIssuesDetailedAsync(bool includeClosed = false)
     {
         var issues = await GetAllIssuesAsync(includeClosed);
 
         await Parallel.ForEachAsync(issues, async (issue, _) =>
         {
-            if (issue.Comments is null)
+            if (issue.Comments is null && issue.TotalComments > 0)
             {
-                var comments = await FetchIssueCommentsAsync(issue.Number);
+                var comments = await github.Connection.FetchIssueCommentsAsync(owner, repo, issue.Number);
                 issue.Comments = comments;
             }
         });
@@ -80,121 +80,6 @@ public class GitHubRepository(GitHub github, string owner, string repo)
         }
 
         _allIssues[issue.Number] = issue;
-    }
-
-    private async Task<List<GitHubComment>> FetchIssueCommentsAsync(int number)
-    {
-        var query = new Query()
-            .Repository(owner: owner, name: repo)
-            .Issue(number: number)
-            .Select(i =>
-                i.Comments(null, null, null, null, null)
-                    .AllPages()
-                    .Select(c => new GitHubComment(
-                        c.Id.ToString(),
-                        c.Author == null ? "ghost" : c.Author.Login,
-                        c.Author == null ? "/ghost" : c.Author.ResourcePath,
-                        c.Body,
-                        c.CreatedAt,
-                        c.Reactions(null, null, null, null, null, null)
-                            .TotalCount
-                    ))
-                    .ToList()
-            )
-            .Compile();
-
-        var comments = await github.Connection.Run(query);
-
-        return comments;
-    }
-
-    private async Task<List<GitHubLabel>> FetchLabelsAsync()
-    {
-        var query = new Query()
-            .Repository(owner: owner, name: repo)
-            .Labels()
-            .AllPages()
-            .Select(label => new GitHubLabel(
-                label.Id.ToString(),
-                label.Name,
-                label.Description,
-                label.Issues(null, null, null, null, null, null, null, null)
-                    .TotalCount
-            ))
-            .Compile();
-
-        var labels = await github.Connection.Run(query);
-
-        return labels.ToList();
-    }
-
-    private async Task<GitHubIssue> FetchIssueAsync(int number)
-    {
-        var query = new Query()
-            .Repository(owner: owner, name: repo)
-            .Issue(number: number)
-            .Select(i => new GitHubIssue(
-                i.Id.ToString(),
-                i.Repository.Owner.Login,
-                i.Repository.Name,
-                i.Number,
-                i.State == IssueState.Open,
-                i.Author.Login,
-                i.Title,
-                i.Body,
-                i.Comments(null, null, null, null, null)
-                    .TotalCount,
-                i.Reactions(null, null, null, null, null, null)
-                    .TotalCount,
-                i.UpdatedAt,
-                i.CreatedAt,
-                i.Labels(null, null, null, null, null)
-                    .AllPages()
-                    .Select(l => l.Name)
-                    .ToList()
-            ))
-            .Compile();
-
-        var issue = await github.Connection.Run(query);
-
-        return issue;
-    }
-
-    private async Task<List<GitHubIssue>> FetchAllIssuesAsync(bool includeClosed)
-    {
-        IssueState[] issueStates = includeClosed
-            ? [IssueState.Open, IssueState.Closed]
-            : [IssueState.Open];
-
-        var query = new Query()
-            .Repository(owner: owner, name: repo)
-            .Issues(states: issueStates)
-            .AllPages()
-            .Select(i => new GitHubIssue(
-                i.Id.ToString(),
-                i.Repository.Owner.Login,
-                i.Repository.Name,
-                i.Number,
-                i.State == IssueState.Open,
-                i.Author.Login,
-                i.Title,
-                i.Body,
-                i.Comments(null, null, null, null, null)
-                    .TotalCount,
-                i.Reactions(null, null, null, null, null, null)
-                    .TotalCount,
-                i.UpdatedAt,
-                i.CreatedAt,
-                i.Labels(null, null, null, null, null)
-                    .AllPages()
-                    .Select(l => l.Name)
-                    .ToList()
-            ))
-            .Compile();
-
-        var issues = await github.Connection.Run(query);
-
-        return issues.ToList();
     }
 
     private List<GitHubLabel> GetFilteredLabels(GitHubLabelFilter filter)
