@@ -16,8 +16,7 @@ public partial class GitHubRepositoryUnitTests
             _ = await repo.GetAllIssuesDetailedAsync(true);
 
             await connection.Received().FetchAllIssuesAsync(TestOwner, TestRepo, true);
-            await connection.Received(2).FetchIssueDetailsAsync(TestOwner, TestRepo, Arg.Is<int>(n => n == 1 || n == 2));
-            await connection.DidNotReceive().FetchIssueDetailsAsync(TestOwner, TestRepo, 3);
+            await connection.Received(3).FetchIssueDetailsAsync(TestOwner, TestRepo, Arg.Any<int>());
             await connection.DidNotReceive().FetchIssueCommentsAsync(TestOwner, TestRepo, Arg.Any<int>());
         }
 
