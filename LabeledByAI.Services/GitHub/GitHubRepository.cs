@@ -35,11 +35,8 @@ public class GitHubRepository(GitHub github, string owner, string repo)
     public async Task<GitHubIssue> GetIssueDetailedAsync(int number)
     {
         var issue = await GetIssueAsync(number);
-        if (issue.Comments is null && issue.TotalComments > 0)
-        {
-            var comments = await github.Connection.FetchIssueCommentsAsync(owner, repo, number);
-            issue.Comments = comments;
-        }
+
+        await FetchAndApplyIssueDetailsAsync(github, owner, repo, issue);
 
         return issue;
     }
@@ -62,14 +59,22 @@ public class GitHubRepository(GitHub github, string owner, string repo)
 
         await Parallel.ForEachAsync(issues, async (issue, _) =>
         {
-            if (issue.Comments is null && issue.TotalComments > 0)
-            {
-                var comments = await github.Connection.FetchIssueCommentsAsync(owner, repo, issue.Number);
-                issue.Comments = comments;
-            }
+            await FetchAndApplyIssueDetailsAsync(github, owner, repo, issue);
         });
 
         return issues;
+    }
+
+    private static async Task FetchAndApplyIssueDetailsAsync(GitHub github, string owner, string repo, GitHubIssue issue)
+    {
+        if ((issue.Comments is null && issue.TotalComments > 0) ||
+            (issue.Reactions is null && issue.TotalReactions > 0))
+        {
+            var details = await github.Connection.FetchIssueDetailsAsync(owner, repo, issue.Number);
+
+            issue.Comments = details.Comments;
+            issue.Reactions = details.Reactions;
+        }
     }
 
     internal void CacheIssue(GitHubIssue issue)

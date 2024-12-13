@@ -10,6 +10,8 @@ public record GitHubComment(
     DateTimeOffset CreatedOn,
     int TotalReactions)
 {
+    public IReadOnlyList<GitHubReaction>? Reactions { get; internal set; }
+
     public bool IsUser =>
         !AuthorType.StartsWith("/apps/");
 

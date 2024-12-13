@@ -19,6 +19,8 @@ public record GitHubIssue(
 {
     public IReadOnlyList<GitHubComment>? Comments { get; internal set; }
 
+    public IReadOnlyList<GitHubReaction>? Reactions { get; internal set; }
+
     [JsonIgnore]
     public IEnumerable<GitHubComment>? UserComments =>
         Comments?.Where(c => c.IsUser);

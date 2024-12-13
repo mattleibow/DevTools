@@ -12,6 +12,8 @@ public interface IGitHubConnection
 
     Task<IReadOnlyList<GitHubComment>> FetchIssueCommentsAsync(string owner, string repo, int number);
 
+    Task<GitHubIssueDetails> FetchIssueDetailsAsync(string owner, string repo, int number);
+
     Task<string> FetchProjectIdAsync(string owner, int number);
 
     Task<IReadOnlyList<GitHubProjectItem>> FetchAllProjectItemsAsync(string projectId);
