@@ -21,7 +21,7 @@ builder.AddServiceDefaults();
 builder.AddOllamaSharpChatClient("ai-model");
 #else
 builder.AddAzureOpenAIClient("ai");
-builder.Services.AddSingleton<IChatClient>(static (provider) =>
+builder.Services.AddSingleton<IChatClient>(static provider =>
     provider.GetRequiredService<OpenAIClient>().AsChatClient("ai-model"));
 #endif
 

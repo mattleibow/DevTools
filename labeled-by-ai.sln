@@ -13,6 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LabeledByAI.Services", "Lab
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Files", "Files", "{D9A3208D-66DE-4F49-9D11-3AC7B2910028}"
 	ProjectSection(SolutionItems) = preProject
+		azure.yaml = azure.yaml
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
