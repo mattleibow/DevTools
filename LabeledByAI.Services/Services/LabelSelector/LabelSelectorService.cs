@@ -7,13 +7,12 @@ namespace LabeledByAI.Services;
 
 public class LabelSelectorService(IGitHubConnection githubConnection, IChatClient chatClient, ILogger<LabelSelectorService> logger)
 {
-    public async Task<LabelSelectorResponse> SelectLabelAsync(LabelSelectorRequest request, string githubToken)
+    public async Task<LabelSelectorResponse> SelectLabelAsync(LabelSelectorRequest request)
     {
         var reqIssue = request.Issue;
         var reqLabels = request.Labels;
 
         // get github repository
-        githubConnection.SetToken(githubToken);
         var github = new GitHub(githubConnection);
         var repo = github.GetRepository(reqIssue.Owner, reqIssue.Repo);
 

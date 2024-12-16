@@ -2,8 +2,6 @@
 
 public interface IGitHubConnection
 {
-    void SetToken(string githubToken);
-
     Task<IReadOnlyList<GitHubLabel>> FetchLabelsAsync(string owner, string repo);
 
     Task<GitHubIssue> FetchIssueAsync(string owner, string repo, int number);
