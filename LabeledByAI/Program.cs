@@ -11,7 +11,9 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddScoped<LabelSelectorService>();
 builder.Services.AddScoped<EngagementService>();
-builder.Services.AddScoped<IGitHubConnection, GitHubRemoteConnection>();
+builder.Services.AddScoped<GitHubRemoteConnection>();
+builder.Services.AddScoped<IGitHubConnection>(static provider =>
+    provider.GetRequiredService<GitHubRemoteConnection>());
 
 builder.AddServiceDefaults();
 

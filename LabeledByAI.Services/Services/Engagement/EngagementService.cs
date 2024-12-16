@@ -5,7 +5,7 @@ namespace LabeledByAI.Services;
 
 public class EngagementService(IGitHubConnection githubConnection, ILogger<EngagementService> logger)
 {
-    public async Task<EngagementResponse> CalculateScoresAsync(EngagementRequest request, string githubToken)
+    public async Task<EngagementResponse> CalculateScoresAsync(EngagementRequest request)
     {
         // TODO:
         // - download the github issue and all the comments and reactions
@@ -19,7 +19,6 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
         // - calc all issues in a project
         // - calc all issues in a project in the last [7/10/30] days
 
-        githubConnection.SetToken(githubToken);
         var github = new GitHub(githubConnection);
 
         if (request.Issue is { } reqIssue)

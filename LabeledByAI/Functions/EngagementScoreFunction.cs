@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace LabeledByAI;
 
-public class EngagementScoreFunction(EngagementService service, ILogger<EngagementScoreFunction> logger)
+public class EngagementScoreFunction(GitHubRemoteConnection connection, EngagementService service, ILogger<EngagementScoreFunction> logger)
     : BaseFunction<EngagementRequest>(logger)
 {
     [Function("engagement-score")]
@@ -14,7 +14,8 @@ public class EngagementScoreFunction(EngagementService service, ILogger<Engageme
 
     protected override async Task<IResult> OnRun(HttpRequest request, EngagementRequest parsedBody)
     {
-        var response = await service.CalculateScoresAsync(parsedBody, request.GetGithubToken());
+        connection.SetToken(request.GetGithubToken());
+        var response = await service.CalculateScoresAsync(parsedBody);
         return TypedResults.Ok(response);
     }
 }

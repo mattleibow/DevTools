@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace LabeledByAI;
 
-public class LabelSelectorFunction(LabelSelectorService service, ILogger<LabelSelectorFunction> logger)
+public class LabelSelectorFunction(GitHubRemoteConnection connection, LabelSelectorService service, ILogger<LabelSelectorFunction> logger)
     : BaseFunction<LabelSelectorRequest>(logger)
 {
     [Function("label")]
@@ -14,7 +14,8 @@ public class LabelSelectorFunction(LabelSelectorService service, ILogger<LabelSe
 
     protected override async Task<IResult> OnRun(HttpRequest request, LabelSelectorRequest parsedBody)
     {
-        var response = await service.SelectLabelAsync(parsedBody, request.GetGithubToken());
+        connection.SetToken(request.GetGithubToken());
+        var response = await service.SelectLabelAsync(parsedBody);
         return TypedResults.Ok(response);
     }
 }
