@@ -1,6 +1,6 @@
 ﻿namespace LabeledByAI.Services.Tests;
 
-public partial class EngagementServiceUnitTests
+public partial class EngagementServiceUnitTests : GitHubUnitTests
 {
     public class Weights
     {

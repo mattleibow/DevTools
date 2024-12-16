@@ -39,5 +39,18 @@ public partial class EngagementServiceUnitTests
 
             brandNewScore.Should().BeGreaterThan(ancientScore);
         }
+
+        [Fact]
+        public void BasicTestIssueScoreIsCorrect()
+        {
+            var issue = BasicExpectedIssues[0];
+            var details = BasicExpectedDetails[issue.Number];
+            issue.Comments = details.Comments;
+            issue.Reactions = details.Reactions;
+
+            var score = service.CalculateScore(issue);
+
+            score.Should().Be(11);
+        } 
     }
 }

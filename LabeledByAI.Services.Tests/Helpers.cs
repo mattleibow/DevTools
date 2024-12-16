@@ -3,11 +3,13 @@
 public static class Helpers
 {
     public static readonly DateTimeOffset FakeNow = DateTimeOffset.Now;
+    public static readonly DateTimeOffset FakeLastWeek = DateTimeOffset.Now.AddDays(-7);
+    public static readonly DateTimeOffset FakeLastMonth = DateTimeOffset.Now.AddMonths(-1);
 
     public static GitHubIssue CreateIssue(
        string? id = null,
        string owner = "owner",
-       string repository = "repo",
+       string repo = "repo",
        int number = 1,
        bool isOpen = true,
        string author = "author",
@@ -23,7 +25,7 @@ public static class Helpers
         var issue = new GitHubIssue(
             id ?? $"issue_{number}",
             owner,
-            repository,
+            repo,
             number,
             isOpen,
             author,
@@ -31,7 +33,7 @@ public static class Helpers
             body,
             totalComments ?? comments?.Count ?? 0,
             totalReactions ?? 0,
-            lastActivityOn ?? FakeNow,
+            lastActivityOn ?? comments?.Max(c => c.CreatedOn) ?? createdOn ?? FakeNow,
             createdOn ?? FakeNow,
             labels ?? [])
         {

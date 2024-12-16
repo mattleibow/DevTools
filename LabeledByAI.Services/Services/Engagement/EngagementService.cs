@@ -169,7 +169,7 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
                 reqProject.Number));
     }
 
-    private int CalculatePreviousScore(GitHubIssue issue) =>
+    public int CalculatePreviousScore(GitHubIssue issue) =>
         issue.TryGetHistoricIssue(DateTimeOffset.Now.AddDays(-7), out var historic)
             ? CalculateScore(historic)
             : 0;
