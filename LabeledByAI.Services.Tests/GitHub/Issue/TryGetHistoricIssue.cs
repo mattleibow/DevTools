@@ -48,7 +48,8 @@ public partial class GitHubIssueUnitTests
 
             var issue = Helpers.CreateIssue(
                 createdOn: createDate,
-                lastActivityOn: pastDate);
+                lastActivityOn: pastDate,
+                totalComments: 3);
             issue.Comments = [
                 Helpers.CreateComment(createdOn: createDate),
                 Helpers.CreateComment(createdOn: pastDate),
@@ -57,7 +58,8 @@ public partial class GitHubIssueUnitTests
 
             var expectedHistoric = Helpers.CreateIssue(
                 createdOn: createDate,
-                lastActivityOn: pastDate);
+                lastActivityOn: pastDate,
+                totalComments: 2);
             expectedHistoric.Comments = [
                 Helpers.CreateComment(createdOn: createDate),
                 Helpers.CreateComment(createdOn: pastDate),

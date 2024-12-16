@@ -73,6 +73,7 @@ public record GitHubIssue(
 
         var oldIssue = this with
         {
+            TotalComments = comments?.Count ?? 0,
             Comments = comments,
             Reactions = reactions,
             LastActivityOn = lastActivityOn
