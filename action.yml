@@ -125,7 +125,7 @@ runs:
             $classificationFieldName = $classificationField.name
             $classificationFieldOptions = @{}
             foreach ($option in $classificationField.options) {
-                $options[$option.name.ToLower()] = $option.id
+                $classificationFieldOptions[$option.name.ToLower()] = $option.id
             }
             Write-Output "  Classification Field Details:"
             Write-Output "    ID: $classificationFieldId"
