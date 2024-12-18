@@ -16,6 +16,6 @@ public class EngagementScoreFunction(GitHubRemoteConnection connection, Engageme
     {
         connection.SetToken(request.GetGithubToken());
         var response = await service.CalculateScoresAsync(parsedBody);
-        return TypedResults.Ok(response);
+        return TypedResults.Json(response, JsonExtensions.SerializerOptions);
     }
 }

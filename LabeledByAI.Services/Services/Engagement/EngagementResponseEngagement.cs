@@ -2,4 +2,5 @@
 
 public record EngagementResponseEngagement(
     int Score,
-    int PreviousScore);
+    int PreviousScore,
+    EngagementResponseEngagementClassification? Classification);
