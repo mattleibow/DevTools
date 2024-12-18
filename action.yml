@@ -148,7 +148,8 @@ runs:
           $engagementScore = $item.engagement.score
           $classification = $item.engagement.classification
 
-          Write-Output "  $repository#$issueNumber => $engagementScore"
+          $classificationString = if ($classification) { "($classification)" } else { "" }
+          Write-Output "  $repository#$issueNumber => $engagementScore $classificationString"
 
           if ($env:UPDATE_PROJECT -eq 'true') {
             if ($scoreField) {
