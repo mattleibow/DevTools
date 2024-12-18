@@ -90,7 +90,10 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
                     issue.Number),
                 new EngagementResponseEngagement(
                     score,
-                    previousScore));
+                    previousScore,
+                    score > previousScore
+                        ? EngagementResponseEngagementClassification.Hot
+                        : null));
 
             items.Add(item);
         }
@@ -155,7 +158,10 @@ public class EngagementService(IGitHubConnection githubConnection, ILogger<Engag
                 content,
                 new EngagementResponseEngagement(
                     score,
-                    previousScore));
+                    previousScore,
+                    score > previousScore
+                        ? EngagementResponseEngagementClassification.Hot
+                        : null));
 
             items.Add(item);
         }
