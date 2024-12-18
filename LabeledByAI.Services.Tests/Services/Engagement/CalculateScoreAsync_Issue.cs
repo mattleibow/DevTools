@@ -37,7 +37,8 @@ public partial class EngagementServiceUnitTests
                 expectedIssue.Number);
             var expectedResponseEngagement = new EngagementResponseEngagement(
                 Score: 11, 
-                PreviousScore: 5);
+                PreviousScore: 5,
+                EngagementResponseEngagementClassification.Hot);
 
             var response = await service.CalculateScoreAsync(
                 new EngagementRequestIssue(TestOwner, TestRepo, 1),
