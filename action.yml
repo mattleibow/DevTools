@@ -7,8 +7,11 @@ inputs:
     description: 'The project to update the scores in.'
     required: true
   column:
-    description: 'The column to update the scores in.'
+    description: 'The column in which to update the scores.'
     default: 'Engagement Score'
+  classification-column:
+    description: 'The column in which to update the classification.'
+    default: 'Engagement Classification'
   project-token:
     description: 'The GitHub token to use when updating the project.'
     required: true
@@ -28,7 +31,8 @@ runs:
         PROJECT_OWNER: ${{ github.event.repository.owner.login }}
         PROJECT_REPO: ${{ github.event.repository.name }}
         PROJECT_NUMBER: ${{ inputs.project }}
-        PROJECT_FIELD_NAME: ${{ inputs.column }}
+        PROJECT_ENGAGEMENT_FIELD_NAME: ${{ inputs.column }}
+        PROJECT_CLASSIFICATION_FIELD_NAME: ${{ inputs.classification-column }}
         UPDATE_PROJECT: ${{ inputs.update-project }}
       run: |
         "Calculating the engagement scores..."
@@ -87,19 +91,49 @@ runs:
         Write-Output "  Number: $projectNumber"
         Write-Output "  Items to Update: $projectUpdateCount"
 
-        Write-Output "Loading the project field using the specified column name '$($env:PROJECT_FIELD_NAME)'..."
-        $field = gh project field-list `
+        Write-Output "Loading the project fields..."
+        $fields = gh project field-list `
             $projectNumber `
             --owner "$projectOwner" `
             --format json |
           ConvertFrom-Json |
-          Select-Object -ExpandProperty fields |
-          Where-Object { $_.name -eq "$env:PROJECT_FIELD_NAME" }
-        $fieldId = $field.id
-        $fieldName = $field.name
-        Write-Output "Field Details:"
-        Write-Output "  ID: $fieldId"
-        Write-Output "  Name: $fieldName"
+          Select-Object -ExpandProperty fields
+
+        if (-not "$env:PROJECT_ENGAGEMENT_FIELD_NAME") {
+          Write-Output "The engagement score field name was not provided, so will not update."
+        } else {
+          $scoreField = $fields | Where-Object { $_.name -eq "$env:PROJECT_ENGAGEMENT_FIELD_NAME" }
+          if (-not $scoreField) {
+            Write-Warning "Score field '$env:PROJECT_ENGAGEMENT_FIELD_NAME' was not found."
+          } else {
+            $scoreFieldId = $scoreField.id
+            $scoreFieldName = $scoreField.name
+            Write-Output "Score Field Details:"
+            Write-Output "  ID: $scoreFieldId"
+            Write-Output "  Name: $scoreFieldName"
+          }
+        }
+
+        if (-not "$env:PROJECT_CLASSIFICATION_FIELD_NAME") {
+          Write-Output "The engagement classification field name was not provided, so will not update."
+        } else {
+          $classificationField = $fields | Where-Object { $_.name -eq "$env:PROJECT_CLASSIFICATION_FIELD_NAME" }
+          if (-not $classificationField) {
+            Write-Warning "Classification field '$env:PROJECT_CLASSIFICATION_FIELD_NAME' was not found."
+          } else {
+            $classificationFieldId = $classificationField.id
+            $classificationFieldName = $classificationField.name
+            Write-Output "Classification Field Details:"
+            Write-Output "  ID: $classificationFieldId"
+            Write-Output "  Name: $classificationFieldName"
+          }
+        }
+
+        if (-not $scoreField -and -not $classificationField) {
+          Write-Output "No fields were found to update."
+          Write-Output "::endgroup::"
+          exit 0
+        }
 
         Write-Output "Updating the scores in the project..."
         foreach ($item in $response.items) {
@@ -107,15 +141,25 @@ runs:
           $repository = "$($item.issue.owner)/$($item.issue.repo)"
           $issueNumber = $item.issue.number
           $engagementScore = $item.engagement.score
+          $classification = $item.engagement.classification
 
           Write-Output "  $repository#$issueNumber => $engagementScore"
 
           if ($env:UPDATE_PROJECT -eq 'true') {
-            gh project item-edit `
-              --id "$itemId" `
-              --project-id "$projectId" `
-              --field-id "$fieldId" `
-              --number "$engagementScore"
+            if ($scoreField) {
+              gh project item-edit `
+                --id "$itemId" `
+                --project-id "$projectId" `
+                --field-id "$scoreFieldId" `
+                --number "$engagementScore"
+            }
+            if ($classificationField -and $classification -eq 'hot') {
+              gh project item-edit `
+                --id "$itemId" `
+                --project-id "$projectId" `
+                --field-id "$classificationField" `
+                --text "Hot"
+            }
           }
         }
 
