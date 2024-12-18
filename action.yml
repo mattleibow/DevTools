@@ -108,9 +108,9 @@ runs:
           } else {
             $scoreFieldId = $scoreField.id
             $scoreFieldName = $scoreField.name
-            Write-Output "Score Field Details:"
-            Write-Output "  ID: $scoreFieldId"
-            Write-Output "  Name: $scoreFieldName"
+            Write-Output "  Score Field Details:"
+            Write-Output "    ID: $scoreFieldId"
+            Write-Output "    Name: $scoreFieldName"
           }
         }
 
@@ -123,9 +123,14 @@ runs:
           } else {
             $classificationFieldId = $classificationField.id
             $classificationFieldName = $classificationField.name
-            Write-Output "Classification Field Details:"
-            Write-Output "  ID: $classificationFieldId"
-            Write-Output "  Name: $classificationFieldName"
+            $classificationFieldOptions = @{}
+            foreach ($option in $classificationField.options) {
+                $options[$option.name.ToLower()] = $option.id
+            }
+            Write-Output "  Classification Field Details:"
+            Write-Output "    ID: $classificationFieldId"
+            Write-Output "    Name: $classificationFieldName"
+            Write-Output "    Options: $(@($classificationFieldOptions.Keys) -join ', ')"
           }
         }
 
@@ -158,7 +163,7 @@ runs:
                 --id "$itemId" `
                 --project-id "$projectId" `
                 --field-id "$classificationField" `
-                --text "Hot"
+                --single-select-option-id $classificationFieldOptions['hot']
             }
           }
         }
