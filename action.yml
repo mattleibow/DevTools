@@ -162,7 +162,7 @@ runs:
               gh project item-edit `
                 --id "$itemId" `
                 --project-id "$projectId" `
-                --field-id "$classificationField" `
+                --field-id "$classificationFieldId" `
                 --single-select-option-id $classificationFieldOptions['hot']
             }
           }
